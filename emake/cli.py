@@ -4,12 +4,18 @@ import argparse
 import sys
 
 from . import __version__
-from .build import build_sdist, build_wheel, clean
+from .build import (
+    build_sdist,
+    clean,
+)
 from .config import get_project_config
 from .lint import run_lint
 from .test import run_tests
 from .venv import get_venv
-from .wheel import test_manylinux_wheel
+from .wheel import (
+    build_manylinux_wheel,
+    test_manylinux_wheel,
+)
 
 
 def validate_extras(config, extras: list[str]) -> list[str]:
@@ -65,9 +71,16 @@ def cmd_build(args) -> int:
     if args.wheel:
         venv = get_venv()
         venv.ensure_build_tools()
-        build_wheel(
-            venv,
-            native=args.native,
+        build_manylinux_wheel(
+            False,
+            arch=args.arch,
+            libc=args.libc,
+            python=args.python,
+        )
+
+    if args.native_wheel:
+        build_manylinux_wheel(
+            True,
             arch=args.arch,
             libc=args.libc,
             python=args.python,
@@ -159,9 +172,10 @@ def main(argv: list[str] | None = None) -> int:
         help="Build wheel",
     )
     _ = subparser.add_argument(
-        "--native",
+        "--native-wheel",
         action="store_true",
         help="Build platform-specific wheel instead of pure Python wheel",
+        dest="native_wheel",
     )
     _ = subparser.add_argument(
         "--arch",

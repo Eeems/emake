@@ -71,7 +71,10 @@ def get_docker_image(arch: str, libc: str) -> str:
 
 
 def build_manylinux_wheel(
-    arch: str | None = None, libc: str | None = None, python: str | None = None
+    native: bool,
+    arch: str | None = None,
+    libc: str | None = None,
+    python: str | None = None,
 ) -> None:
     """Build a manylinux wheel using Docker.
 
@@ -91,6 +94,10 @@ def build_manylinux_wheel(
     image = get_docker_image(arch, libc)
     python_interpreter = get_python_interpreter(python)
 
+    flags: list[str] = []
+    if not native:  # TODO determine based on build system in use
+        flags.append("--config-setting=build_with_nuitka=false")
+
     # Create build script
     script = f"""
 set -e
@@ -99,7 +106,7 @@ PATH="/opt/python/{python_interpreter}/bin:$PATH";
 cd /src;
 rm -rf build/
 python -m pip install --upgrade build;
-python -m build --wheel;
+python -m build --wheel {" ".join(flags)};
 auditwheel repair dist/*_{arch}.whl;
 owner=$(stat -c '%u:%g' .)
 chown -R "$owner" dist/ *.egg-info/ build/ wheelhouse/

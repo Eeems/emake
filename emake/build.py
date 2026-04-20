@@ -5,45 +5,6 @@ import sys
 from pathlib import Path
 
 from .venv import VirtualEnvironment
-from .wheel import build_manylinux_wheel
-
-
-def build_wheel(
-    venv: VirtualEnvironment,
-    native: bool = False,
-    arch: str = "x86_64",
-    libc: str = "glibc",
-    python: str = "3.11",
-) -> None:
-    """Build a wheel.
-
-    Args:
-        venv: VirtualEnvironment instance.
-        native: If True, build platform-specific wheel in manylinux container.
-        arch: Target architecture for manylinux build.
-        libc: Target libc for manylinux build.
-        python: Python version for manylinux build.
-    """
-    if native:
-        build_manylinux_wheel(arch=arch, libc=libc, python=python)
-        return
-
-    if not venv.exists:
-        print(
-            "Error: Virtual environment not found. Run 'emake requirements' first.",
-            file=sys.stderr,
-        )
-        sys.exit(1)
-
-    dist_dir = Path("dist")
-    dist_dir.mkdir(exist_ok=True)
-
-    cmd = [str(venv.python), "-m", "build", "--wheel"]
-    cmd.append("--config-setting=build_with_nuitka=false")
-
-    print("Building pure wheel...")
-    _ = subprocess.run(cmd, check=True)
-    print("Wheel built successfully")
 
 
 def build_sdist(venv: VirtualEnvironment) -> None:

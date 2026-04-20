@@ -1,6 +1,5 @@
 """Linting for emake."""
 
-import os
 import subprocess
 from pathlib import Path
 
