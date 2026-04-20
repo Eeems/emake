@@ -1,6 +1,7 @@
 """Main CLI for emake."""
 
 import argparse
+import os
 import sys
 
 from . import __version__
@@ -8,7 +9,10 @@ from .build import (
     build_sdist,
     clean,
 )
-from .config import get_project_config
+from .config import (
+    ProjectConfig,
+    get_project_config,
+)
 from .lint import run_lint
 from .test import run_tests
 from .venv import get_venv
@@ -18,7 +22,7 @@ from .wheel import (
 )
 
 
-def validate_extras(config, extras: list[str]) -> list[str]:
+def validate_extras(config: ProjectConfig, extras: list[str]) -> list[str]:
     """Validate that extras are defined in pyproject.toml.
 
     Args:
@@ -40,66 +44,67 @@ def validate_extras(config, extras: list[str]) -> list[str]:
     return extras
 
 
-def cmd_requirements(args) -> int:
+def cmd_requirements(args: argparse.Namespace) -> int:
     """Handle the requirements command."""
     config = get_project_config()
-    extras = validate_extras(config, args.extras) if args.extras else []
+    extras = validate_extras(config, args.extras) if args.extras else []  # pyright: ignore[reportAny]
 
     venv = get_venv()
     venv.install(extras)
     return 0
 
 
-def cmd_test(args) -> int:
+def cmd_test(args: argparse.Namespace) -> int:
     """Handle the test command."""
-    if args.wheel:
-        test_manylinux_wheel(None, arch=args.arch, libc=args.libc, python=args.python)
+    if args.wheel:  # pyright: ignore[reportAny]
+        test_manylinux_wheel(
+            None,
+            arch=args.arch,  # pyright: ignore[reportAny]
+            libc=args.libc,  # pyright: ignore[reportAny]
+            python=args.python,  # pyright: ignore[reportAny]
+        )
         return 0
 
     venv = get_venv()
     venv.ensure_test_tools()
-    return run_tests(venv, args.path)
+    return run_tests(venv, args.path)  # pyright: ignore[reportAny]
 
 
-def cmd_build(args) -> int:
+def cmd_build(args: argparse.Namespace) -> int:
     """Handle the build command."""
     venv = get_venv()
     venv.ensure_build_tools()
-    if args.sdist:
+    if args.sdist:  # pyright: ignore[reportAny]
         build_sdist(venv)
 
-    if args.wheel:
-        venv = get_venv()
-        venv.ensure_build_tools()
+    if args.wheel:  # pyright: ignore[reportAny]
         build_manylinux_wheel(
             False,
-            arch=args.arch,
-            libc=args.libc,
-            python=args.python,
+            arch=args.arch,  # pyright: ignore[reportAny]
+            libc=args.libc,  # pyright: ignore[reportAny]
+            python=args.python,  # pyright: ignore[reportAny]
         )
 
-    if args.native_wheel:
+    if args.native_wheel:  # pyright: ignore[reportAny]
         build_manylinux_wheel(
             True,
-            arch=args.arch,
-            libc=args.libc,
-            python=args.python,
+            arch=args.arch,  # pyright: ignore[reportAny]
+            libc=args.libc,  # pyright: ignore[reportAny]
+            python=args.python,  # pyright: ignore[reportAny]
         )
 
     return 0
 
 
-def cmd_clean(args) -> int:
+def cmd_clean(_args: argparse.Namespace) -> int:
     """Handle the clean command."""
     clean()
     return 0
 
 
-def cmd_lint(args) -> int:
+def cmd_lint(args: argparse.Namespace) -> int:
     """Handle the lint command."""
-    venv = get_venv()
-    venv.ensure_lint_tools()
-    return run_lint(venv, fix=args.fix)
+    return run_lint(get_venv(), fix=args.fix)  # pyright: ignore[reportAny]
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -112,6 +117,13 @@ def main(argv: list[str] | None = None) -> int:
         "--version",
         action="version",
         version=f"%(prog)s {__version__}",
+    )
+    _ = parser.add_argument(
+        "--directory",
+        "-C",
+        help="Change to DIRECTORY before doing anything",
+        metavar="DIRECTORY",
+        default=".",
     )
     subparsers = parser.add_subparsers(dest="command", required=True)
 
@@ -212,13 +224,14 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
 
     try:
+        os.chdir(os.path.abspath(args.directory))  # pyright: ignore[reportAny]
         return {
             "requirements": cmd_requirements,
             "test": cmd_test,
             "build": cmd_build,
             "clean": cmd_clean,
             "lint": cmd_lint,
-        }[args.command](args)
+        }[args.command](args)  # pyright: ignore[reportAny]
 
     except Exception as e:
         print(f"Error: {e}", file=sys.stderr)

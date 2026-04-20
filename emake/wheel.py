@@ -17,6 +17,7 @@ def check_docker() -> bool:
         result = subprocess.run(
             ["docker", "--version"],
             capture_output=True,
+            check=False,
         )
         return result.returncode == 0
     except FileNotFoundError:

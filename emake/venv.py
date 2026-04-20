@@ -5,7 +5,6 @@ import subprocess
 import venv
 from pathlib import Path
 
-
 VENV_DIR = Path(".venv")
 
 
@@ -15,7 +14,7 @@ class VirtualEnvironment:
     path: Path
     python: Path
 
-    def __init__(self, path: Path | None = None):
+    def __init__(self, path: Path | None = None) -> None:
         """Initialize virtual environment manager.
 
         Args:
@@ -29,26 +28,25 @@ class VirtualEnvironment:
         """Check if virtual environment exists."""
         return self.path.exists() and self.python.exists()
 
-    def create(self) -> None:
-        """Create the virtual environment."""
-        print(f"Creating virtual environment at {self.path}")
-        builder = venv.EnvBuilder(with_pip=True, upgrade_deps=True)
-        builder.create(self.path)
-        self._upgrade_pip()
+    def ensure(self) -> None:
+        if not self.exists:
+            self.create()
 
-    def _upgrade_pip(self) -> None:
-        """Upgrade pip in the virtual environment."""
         _ = subprocess.run(
             [str(self.python), "-m", "pip", "install", "--upgrade", "pip"],
             check=True,
             capture_output=True,
         )
 
+    def create(self) -> None:
+        """Create the virtual environment."""
+        print(f"Creating virtual environment at {self.path}")
+        builder = venv.EnvBuilder(with_pip=True, upgrade_deps=True)
+        builder.create(self.path)
+
     def ensure_build_tools(self) -> None:
         """Ensure build and wheel are installed in the venv."""
-        if not self.exists:
-            self.create()
-        self._upgrade_pip()
+        self.ensure()
         _ = subprocess.run(
             [str(self.python), "-m", "pip", "install", "--quiet", "build", "wheel"],
             check=True,
@@ -56,9 +54,7 @@ class VirtualEnvironment:
 
     def ensure_test_tools(self) -> None:
         """Ensure pytest is installed in the venv."""
-        if not self.exists:
-            self.create()
-        self._upgrade_pip()
+        self.ensure()
         _ = subprocess.run(
             [str(self.python), "-m", "pip", "install", "--quiet", "pytest"],
             check=True,
@@ -66,8 +62,7 @@ class VirtualEnvironment:
 
     def ensure_lint_tools(self) -> None:
         """Ensure linting tools are installed in the venv."""
-        if not self.exists:
-            self.create()
+        self.ensure()
         _ = subprocess.run(
             [
                 str(self.python),
@@ -90,22 +85,22 @@ class VirtualEnvironment:
         Args:
             extras: List of extra dependency groups to install.
         """
-        if not self.exists:
-            self.create()
-        else:
-            print(f"Using existing virtual environment at {self.path}")
-
+        self.ensure()
         # Build install command
-        cmd = [str(self.python), "-m", "pip", "install", "--quiet", "--editable", "."]
-
-        if extras:
-            extra_str = ",".join(extras)
-            cmd[4] = f".[{extra_str}]"
-
-        result = subprocess.run(cmd, capture_output=True, text=True)
-        if result.returncode != 0:
-            print(f"Error installing: {result.stderr}")
-            raise subprocess.CalledProcessError(result.returncode, cmd)
+        _ = subprocess.run(
+            [
+                str(self.python),
+                "-m",
+                "pip",
+                "install",
+                "--quiet",
+                "--editable",
+                f".[{','.join(extras)}]" if extras else ".",
+            ],
+            capture_output=True,
+            text=True,
+            check=True,
+        )
         print("Dependencies installed")
 
     def run(
@@ -120,9 +115,7 @@ class VirtualEnvironment:
         Returns:
             CompletedProcess instance.
         """
-        if not self.exists:
-            raise RuntimeError("Virtual environment not created")
-
+        self.ensure()
         run_env: dict[str, str] = os.environ.copy()
         if env:
             run_env.update(env)

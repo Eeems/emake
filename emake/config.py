@@ -2,6 +2,7 @@
 
 from pathlib import Path
 from tomllib import load
+from typing import Any
 
 
 class ProjectConfig:
@@ -9,7 +10,7 @@ class ProjectConfig:
 
     path: Path
 
-    def __init__(self, path: Path | None = None):
+    def __init__(self, path: Path | None = None) -> None:
         """Initialize config from pyproject.toml.
 
         Args:
@@ -19,7 +20,7 @@ class ProjectConfig:
             path = self._find_pyproject()
         self.path = path
         with open(path, "rb") as f:
-            self._data: dict = load(f)
+            self._data: dict[str, Any] = load(f)  # pyright: ignore[reportExplicitAny]
 
     def _find_pyproject(self) -> Path:
         """Find pyproject.toml in current or parent directories."""
@@ -33,19 +34,19 @@ class ProjectConfig:
     @property
     def name(self) -> str:
         """Package name from [project].name."""
-        project: dict = self._data["project"]
+        project: dict[str, str] = self._data["project"]  # pyright: ignore[reportAny]
         return str(project["name"])
 
     @property
     def version(self) -> str:
         """Package version from [project].version."""
-        project: dict = self._data["project"]
+        project: dict[str, str] = self._data["project"]  # pyright: ignore[reportAny]
         return str(project["version"])
 
     @property
     def extras(self) -> dict[str, list[str]]:
         """Dict of optional dependencies from [project.optional-dependencies]."""
-        project: dict = self._data["project"]
+        project: dict[str, list[tuple[str, list[str]]]] = self._data["project"]  # pyright: ignore[reportAny]
         extras = project.get("optional-dependencies")
         return dict(extras) if extras else {}
 

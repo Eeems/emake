@@ -1,5 +1,7 @@
 """Build management for emake."""
 
+import glob
+import shutil
 import subprocess
 import sys
 from pathlib import Path
@@ -40,19 +42,13 @@ def clean() -> None:
     for d in dirs_to_remove:
         path = Path(d)
         if path.exists():
-            import shutil
-
             shutil.rmtree(path)
 
     # Files to remove
-    import glob
-
     files_to_remove = glob.glob("*.egg-info")
     for f in files_to_remove:
         path = Path(f)
         if path.exists():
-            import shutil
-
             shutil.rmtree(path)
 
     # Additional patterns
@@ -60,14 +56,10 @@ def clean() -> None:
         for f in glob.glob(pattern):
             path = Path(f)
             if path.exists():
-                import shutil
-
                 shutil.rmtree(path)
 
     # Clean pycache
     for d in Path(".").rglob("__pycache__"):
-        import shutil
-
         shutil.rmtree(d)
 
     for f in Path(".").rglob("*.pyc"):

@@ -28,5 +28,6 @@ def run_tests(venv: VirtualEnvironment, path: str = "tests/") -> int:
     result = subprocess.run(
         [str(venv.python), "-m", "pytest", "-vv", path],
         env=env,
+        check=False,
     )
     return result.returncode
