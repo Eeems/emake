@@ -45,6 +45,20 @@ class VirtualEnvironment:
             capture_output=True,
         )
 
+    def ensure_build_tools(self) -> None:
+        """Ensure build and wheel are installed in the venv."""
+        subprocess.run(
+            [str(self.python), "-m", "pip", "install", "--quiet", "build", "wheel"],
+            check=True,
+        )
+
+    def ensure_test_tools(self) -> None:
+        """Ensure pytest is installed in the venv."""
+        subprocess.run(
+            [str(self.python), "-m", "pip", "install", "--quiet", "pytest"],
+            check=True,
+        )
+
     def install(self, extras: list[str] | None = None) -> None:
         """Install the package with optional extras.
 

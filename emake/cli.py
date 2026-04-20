@@ -9,6 +9,7 @@ from emake.config import get_project_config
 from emake.test import run_tests
 from emake.venv import get_venv
 from emake.build import build_wheel, build_sdist, build_all, clean
+from emake.wheel import test_manylinux_wheel
 
 
 def create_parser() -> argparse.ArgumentParser:
@@ -46,6 +47,11 @@ def add_test_parser(subparsers) -> argparse.ArgumentParser:
         help="Run tests (default: all tests in tests/)",
     )
     parser.add_argument(
+        "--wheel",
+        action="store_true",
+        help="Test using Docker with a built wheel instead of local code",
+    )
+    parser.add_argument(
         "path",
         nargs="?",
         default="tests/",
@@ -66,6 +72,9 @@ def add_wheel_parser(subparsers) -> argparse.ArgumentParser:
         help="Build platform-specific wheel instead of pure Python wheel",
     )
     return parser
+
+
+
 
 
 def add_sdist_parser(subparsers) -> argparse.ArgumentParser:
@@ -126,8 +135,12 @@ def cmd_requirements(args) -> int:
 
 def cmd_test(args) -> int:
     """Handle the test command."""
-    config = get_project_config()
+    if args.wheel:
+        test_manylinux_wheel(None)
+        return 0
+
     venv = get_venv()
+    venv.ensure_test_tools()
     return run_tests(venv, args.path)
 
 
@@ -135,6 +148,7 @@ def cmd_wheel(args) -> int:
     """Handle the wheel command."""
     config = get_project_config()
     venv = get_venv()
+    venv.ensure_build_tools()
     build_wheel(venv, config, native=args.native)
     return 0
 
@@ -143,6 +157,7 @@ def cmd_sdist(args) -> int:
     """Handle the sdist command."""
     config = get_project_config()
     venv = get_venv()
+    venv.ensure_build_tools()
     build_sdist(venv, config)
     return 0
 
@@ -151,6 +166,7 @@ def cmd_build(args) -> int:
     """Handle the build command."""
     config = get_project_config()
     venv = get_venv()
+    venv.ensure_build_tools()
     build_all(venv, config)
     return 0
 
