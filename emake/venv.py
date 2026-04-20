@@ -2,81 +2,96 @@
 
 import os
 import subprocess
-import venv
+import sys
 from pathlib import Path
-
-VENV_DIR = Path(".venv")
 
 
 class VirtualEnvironment:
     """Manages a virtual environment."""
 
-    path: Path
-    python: Path
-
-    def __init__(self, path: Path | None = None) -> None:
+    def __init__(self, path: Path) -> None:
         """Initialize virtual environment manager.
 
         Args:
             path: Path to virtual environment. Defaults to .venv in cwd.
         """
-        self.path = path or VENV_DIR
-        self.python = self.path / "bin" / "python"
+        self.path: Path = path.resolve()
+        self.python: Path = self.path / "bin" / "python"
+        self.pip: Path = self.path / "bin" / "pip"
 
     @property
     def exists(self) -> bool:
         """Check if virtual environment exists."""
-        return self.path.exists() and self.python.exists()
+        return (
+            self.path.exists(follow_symlinks=True)
+            and self.python.exists(follow_symlinks=True)
+            and self.pip.exists(follow_symlinks=True)
+        )
+
+    def _chronic(
+        self,
+        *args: Path | str,
+        env: dict[str, str] | None = None,
+        check: bool = True,
+    ) -> subprocess.CompletedProcess[str]:
+        proc = subprocess.run(
+            args,
+            check=False,
+            capture_output=True,
+            text=True,
+            env=env,
+        )
+        if check and proc.returncode != 0:
+            raise subprocess.CalledProcessError(
+                proc.returncode,
+                proc.args,  # pyright: ignore[reportAny]
+                proc.stdout,
+                proc.stderr,
+            )
+
+        return proc
 
     def ensure(self) -> None:
         if not self.exists:
             self.create()
 
-        _ = subprocess.run(
-            [str(self.python), "-m", "pip", "install", "--upgrade", "pip"],
-            check=True,
-            capture_output=True,
-        )
+        _ = self._chronic(self.python, "-um", "ensurepip")
+        _ = self._chronic(self.pip, "install", "--upgrade", "pip")
 
     def create(self) -> None:
         """Create the virtual environment."""
         print(f"Creating virtual environment at {self.path}")
-        builder = venv.EnvBuilder(with_pip=True, upgrade_deps=True)
-        builder.create(self.path)
+        _ = self._chronic(
+            "python" if "__compiled__" in globals() else sys.executable,
+            "-m",
+            "venv",
+            "--system-site-packages",
+            "--upgrade",
+            "--clear",
+            self.path,
+        )
 
     def ensure_build_tools(self) -> None:
         """Ensure build and wheel are installed in the venv."""
         self.ensure()
-        _ = subprocess.run(
-            [str(self.python), "-m", "pip", "install", "--quiet", "build", "wheel"],
-            check=True,
-        )
+        _ = self._chronic(self.pip, "install", "build", "wheel")
 
     def ensure_test_tools(self) -> None:
         """Ensure pytest is installed in the venv."""
         self.ensure()
-        _ = subprocess.run(
-            [str(self.python), "-m", "pip", "install", "--quiet", "pytest"],
-            check=True,
-        )
+        _ = self._chronic(self.pip, "install", "pytest")
 
     def ensure_lint_tools(self) -> None:
         """Ensure linting tools are installed in the venv."""
         self.ensure()
-        _ = subprocess.run(
-            [
-                str(self.python),
-                "-m",
-                "pip",
-                "install",
-                "--quiet",
-                "ruff",
-                "vulture",
-                "basedpyright",
-                "dodgy",
-                "pyroma",
-            ],
-            check=True,
+        _ = self._chronic(
+            self.pip,
+            "install",
+            "ruff",
+            "vulture",
+            "basedpyright",
+            "dodgy",
+            "pyroma",
         )
 
     def install(self, extras: list[str] | None = None) -> None:
@@ -87,19 +102,12 @@ class VirtualEnvironment:
         """
         self.ensure()
         # Build install command
-        _ = subprocess.run(
-            [
-                str(self.python),
-                "-m",
-                "pip",
-                "install",
-                "--quiet",
-                "--editable",
-                f".[{','.join(extras)}]" if extras else ".",
-            ],
-            capture_output=True,
-            text=True,
-            check=True,
+        _ = self._chronic(
+            self.pip,
+            "install",
+            "--quiet",
+            "--editable",
+            f".[{','.join(extras)}]" if extras else ".",
         )
         print("Dependencies installed")
 
@@ -120,11 +128,9 @@ class VirtualEnvironment:
         if env:
             run_env.update(env)
 
-        return subprocess.run(
-            [str(self.python)] + list(args),
-            check=True,
-            capture_output=True,
-            text=True,
+        return self._chronic(
+            self.python,
+            *args,
             env=run_env,
         )
 
@@ -138,4 +144,4 @@ def get_venv(path: Path | None = None) -> VirtualEnvironment:
     Returns:
         VirtualEnvironment instance.
     """
-    return VirtualEnvironment(path)
+    return VirtualEnvironment(path or Path(".venv"))

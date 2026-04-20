@@ -239,20 +239,15 @@ def main(argv: list[str] | None = None) -> int:
 
     args = parser.parse_args(argv)
 
-    try:
-        os.chdir(os.path.abspath(args.directory))  # pyright: ignore[reportAny]
-        return {
-            "requirements": cmd_requirements,
-            "test": cmd_test,
-            "build": cmd_build,
-            "clean": cmd_clean,
-            "lint": cmd_lint,
-            "status": cmd_status,
-        }[args.command](args)  # pyright: ignore[reportAny]
-
-    except Exception as e:
-        print(f"Error: {e}", file=sys.stderr)
-        return 1
+    os.chdir(os.path.abspath(args.directory))  # pyright: ignore[reportAny]
+    return {
+        "requirements": cmd_requirements,
+        "test": cmd_test,
+        "build": cmd_build,
+        "clean": cmd_clean,
+        "lint": cmd_lint,
+        "status": cmd_status,
+    }[args.command](args)  # pyright: ignore[reportAny]
 
 
 if __name__ == "__main__":
