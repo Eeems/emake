@@ -1,3 +1,11 @@
 """emake - A Python module to replace Makefile workflows."""
 
-__version__ = "0.0.1"
+from importlib.metadata import PackageNotFoundError, version
+
+try:
+    __version__ = version("emake")
+
+except PackageNotFoundError:
+    __version__ = "dev"
+
+print(f" Loaded emake version {__version__}")

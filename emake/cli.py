@@ -2,14 +2,15 @@
 
 import argparse
 import sys
-from pathlib import Path
 
 from emake import __version__
-from emake.config import get_project_config
-from emake.test import run_tests
-from emake.venv import get_venv
-from emake.build import build_wheel, build_sdist, build_all, clean
-from emake.wheel import build_manylinux_wheel, test_manylinux_wheel
+
+from .build import build_all, build_sdist, build_wheel, clean
+from .config import get_project_config
+from .lint import run_lint
+from .test import run_tests
+from .venv import get_venv
+from .wheel import test_manylinux_wheel
 
 
 def create_parser() -> argparse.ArgumentParser:
@@ -106,9 +107,6 @@ def add_wheel_parser(subparsers) -> argparse.ArgumentParser:
     return parser
 
 
-
-
-
 def add_sdist_parser(subparsers) -> argparse.ArgumentParser:
     """Add the sdist subcommand."""
     return subparsers.add_parser(
@@ -131,6 +129,20 @@ def add_clean_parser(subparsers) -> argparse.ArgumentParser:
         "clean",
         help="Remove build artifacts",
     )
+
+
+def add_lint_parser(subparsers) -> argparse.ArgumentParser:
+    """Add the lint subcommand."""
+    parser = subparsers.add_parser(
+        "lint",
+        help="Run linting",
+    )
+    parser.add_argument(
+        "--fix",
+        action="store_true",
+        help="Automatically fix issues where supported",
+    )
+    return parser
 
 
 def validate_extras(config, extras: list[str]) -> list[str]:
@@ -179,32 +191,35 @@ def cmd_test(args) -> int:
 def cmd_wheel(args) -> int:
     """Handle the wheel command."""
     if args.native:
-        # Manylinux build using Docker (--native enables cross-compilation)
-        build_manylinux_wheel(arch=args.arch, libc=args.libc, python=args.python)
-    else:
-        # Local build
-        config = get_project_config()
+        # For native, we just need build tools but run in docker
         venv = get_venv()
         venv.ensure_build_tools()
-        build_wheel(venv, config, native=False)
+    else:
+        venv = get_venv()
+        venv.ensure_build_tools()
+    build_wheel(
+        venv,
+        native=args.native,
+        arch=args.arch,
+        libc=args.libc,
+        python=args.python,
+    )
     return 0
 
 
 def cmd_sdist(args) -> int:
     """Handle the sdist command."""
-    config = get_project_config()
     venv = get_venv()
     venv.ensure_build_tools()
-    build_sdist(venv, config)
+    build_sdist(venv)
     return 0
 
 
 def cmd_build(args) -> int:
     """Handle the build command."""
-    config = get_project_config()
     venv = get_venv()
     venv.ensure_build_tools()
-    build_all(venv, config)
+    build_all(venv)
     return 0
 
 
@@ -212,6 +227,13 @@ def cmd_clean(args) -> int:
     """Handle the clean command."""
     clean()
     return 0
+
+
+def cmd_lint(args) -> int:
+    """Handle the lint command."""
+    venv = get_venv()
+    venv.ensure_lint_tools()
+    return run_lint(venv, fix=args.fix)
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -225,6 +247,7 @@ def main(argv: list[str] | None = None) -> int:
     add_sdist_parser(subparsers)
     add_build_parser(subparsers)
     add_clean_parser(subparsers)
+    add_lint_parser(subparsers)
 
     args = parser.parse_args(argv)
 
@@ -236,6 +259,7 @@ def main(argv: list[str] | None = None) -> int:
         "sdist": cmd_sdist,
         "build": cmd_build,
         "clean": cmd_clean,
+        "lint": cmd_lint,
     }
 
     try:

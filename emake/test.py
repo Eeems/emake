@@ -4,7 +4,7 @@ import os
 import subprocess
 import sys
 
-from emake.venv import VirtualEnvironment
+from .venv import VirtualEnvironment
 
 
 def run_tests(venv: VirtualEnvironment, path: str = "tests/") -> int:
@@ -18,7 +18,10 @@ def run_tests(venv: VirtualEnvironment, path: str = "tests/") -> int:
         Exit code from pytest.
     """
     if not venv.exists:
-        print("Error: Virtual environment not found. Run 'emake requirements' first.", file=sys.stderr)
+        print(
+            "Error: Virtual environment not found. Run 'emake requirements' first.",
+            file=sys.stderr,
+        )
         return 1
 
     env = os.environ.copy()

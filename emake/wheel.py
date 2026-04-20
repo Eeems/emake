@@ -71,7 +71,9 @@ def get_docker_image(arch: str, libc: str) -> str:
         return f"manylinux_2_34_{arch}"
 
 
-def build_manylinux_wheel(arch: str | None = None, libc: str | None = None, python: str | None = None) -> None:
+def build_manylinux_wheel(
+    arch: str | None = None, libc: str | None = None, python: str | None = None
+) -> None:
     """Build a manylinux wheel using Docker.
 
     Args:
@@ -109,12 +111,20 @@ auditwheel repair dist/*_{arch}.whl;
 
     # Setup binfmt for non-x86_64 architectures
     if arch != "x86_64":
-        subprocess.run(
-            ["docker", "run", "--privileged", "--rm", "tonistiigi/binfmt", "--install", "all"],
+        _ = subprocess.run(
+            [
+                "docker",
+                "run",
+                "--privileged",
+                "--rm",
+                "tonistiigi/binfmt",
+                "--install",
+                "all",
+            ],
             check=True,
         )
 
-    subprocess.run(
+    _ = subprocess.run(
         [
             "docker",
             "run",
@@ -154,7 +164,7 @@ def test_manylinux_wheel(
         print("Error: Docker is not available", file=sys.stderr)
         sys.exit(1)
 
-# Find wheel if not provided
+    # Find wheel if not provided
     if wheel_path is None:
         # Check wheelhouse for manylinux wheels, then dist for any wheel
         for directory in ["wheelhouse", "dist"]:
@@ -195,14 +205,22 @@ python -m pytest -vv tests;
 
     # Setup binfmt for non-x86_64 architectures
     if arch != "x86_64":
-        subprocess.run(
-            ["docker", "run", "--privileged", "--rm", "tonistiigi/binfmt", "--install", "all"],
+        _ = subprocess.run(
+            [
+                "docker",
+                "run",
+                "--privileged",
+                "--rm",
+                "tonistiigi/binfmt",
+                "--install",
+                "all",
+            ],
             check=True,
         )
 
     print(f"Testing wheel {wheel_path} on {image}...")
 
-    subprocess.run(
+    _ = subprocess.run(
         [
             "docker",
             "run",

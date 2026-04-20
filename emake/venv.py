@@ -2,18 +2,18 @@
 
 import os
 import subprocess
-import sys
 import venv
 from pathlib import Path
 
 
 VENV_DIR = Path(".venv")
-VENV_ACTIVATE = VENV_DIR / "bin" / "activate"
-VENV_PYTHON = VENV_DIR / "bin" / "python"
 
 
 class VirtualEnvironment:
     """Manages a virtual environment."""
+
+    path: Path
+    python: Path
 
     def __init__(self, path: Path | None = None):
         """Initialize virtual environment manager.
@@ -22,7 +22,6 @@ class VirtualEnvironment:
             path: Path to virtual environment. Defaults to .venv in cwd.
         """
         self.path = path or VENV_DIR
-        self.activate = self.path / "bin" / "activate"
         self.python = self.path / "bin" / "python"
 
     @property
@@ -39,7 +38,7 @@ class VirtualEnvironment:
 
     def _upgrade_pip(self) -> None:
         """Upgrade pip in the virtual environment."""
-        subprocess.run(
+        _ = subprocess.run(
             [str(self.python), "-m", "pip", "install", "--upgrade", "pip"],
             check=True,
             capture_output=True,
@@ -47,15 +46,41 @@ class VirtualEnvironment:
 
     def ensure_build_tools(self) -> None:
         """Ensure build and wheel are installed in the venv."""
-        subprocess.run(
+        if not self.exists:
+            self.create()
+        self._upgrade_pip()
+        _ = subprocess.run(
             [str(self.python), "-m", "pip", "install", "--quiet", "build", "wheel"],
             check=True,
         )
 
     def ensure_test_tools(self) -> None:
         """Ensure pytest is installed in the venv."""
-        subprocess.run(
+        if not self.exists:
+            self.create()
+        self._upgrade_pip()
+        _ = subprocess.run(
             [str(self.python), "-m", "pip", "install", "--quiet", "pytest"],
+            check=True,
+        )
+
+    def ensure_lint_tools(self) -> None:
+        """Ensure linting tools are installed in the venv."""
+        if not self.exists:
+            self.create()
+        _ = subprocess.run(
+            [
+                str(self.python),
+                "-m",
+                "pip",
+                "install",
+                "--quiet",
+                "ruff",
+                "vulture",
+                "basedpyright",
+                "dodgy",
+                "pyroma",
+            ],
             check=True,
         )
 
@@ -83,7 +108,9 @@ class VirtualEnvironment:
             raise subprocess.CalledProcessError(result.returncode, cmd)
         print("Dependencies installed")
 
-    def run(self, *args: str, env: dict | None = None) -> subprocess.CompletedProcess:
+    def run(
+        self, *args: str, env: dict[str, str] | None = None
+    ) -> subprocess.CompletedProcess[str]:
         """Run a command in the virtual environment.
 
         Args:
@@ -96,7 +123,7 @@ class VirtualEnvironment:
         if not self.exists:
             raise RuntimeError("Virtual environment not created")
 
-        run_env = os.environ.copy()
+        run_env: dict[str, str] = os.environ.copy()
         if env:
             run_env.update(env)
 
@@ -105,25 +132,6 @@ class VirtualEnvironment:
             check=True,
             capture_output=True,
             text=True,
-            env=run_env,
-        )
-
-    def run_interactive(self, *args: str, env: dict | None = None) -> None:
-        """Run a command interactively in the virtual environment.
-
-        Args:
-            *args: Command and arguments to run.
-            env: Additional environment variables.
-        """
-        if not self.exists:
-            raise RuntimeError("Virtual environment not created")
-
-        run_env = os.environ.copy()
-        if env:
-            run_env.update(env)
-
-        subprocess.run(
-            [str(self.python)] + list(args),
             env=run_env,
         )
 
