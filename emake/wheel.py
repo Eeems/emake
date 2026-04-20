@@ -5,7 +5,6 @@ import subprocess
 import sys
 from pathlib import Path
 
-
 # Default values
 DEFAULT_LIBC = "glibc"
 DEFAULT_ARCH = "x86_64"
@@ -98,12 +97,12 @@ set -e
 manylinux-interpreters ensure "{python_interpreter}";
 PATH="/opt/python/{python_interpreter}/bin:$PATH";
 cd /src;
-if [ -d build ];then
-    rm -rf build dist
-fi
+rm -rf build/
 python -m pip install --upgrade build;
 python -m build --wheel;
 auditwheel repair dist/*_{arch}.whl;
+owner=$(stat -c '%u:%g' .)
+chown -R "$owner" dist/ *.egg-info/ build/ wheelhouse/
 """
 
     # Run Docker container

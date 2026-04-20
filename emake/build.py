@@ -70,30 +70,6 @@ def build_sdist(venv: VirtualEnvironment) -> None:
     print("sdist built successfully")
 
 
-def build_all(venv: VirtualEnvironment) -> None:
-    """Build both wheel and sdist.
-
-    Args:
-        venv: VirtualEnvironment instance.
-    """
-    if not venv.exists:
-        print(
-            "Error: Virtual environment not found. Run 'emake requirements' first.",
-            file=sys.stderr,
-        )
-        sys.exit(1)
-
-    dist_dir = Path("dist")
-    dist_dir.mkdir(exist_ok=True)
-
-    print("Building wheel and sdist...")
-    _ = subprocess.run(
-        [str(venv.python), "-m", "build"],
-        check=True,
-    )
-    print("Build complete")
-
-
 def clean() -> None:
     """Remove build artifacts."""
     print("Cleaning build artifacts...")
