@@ -9,7 +9,7 @@ from emake.config import get_project_config
 from emake.test import run_tests
 from emake.venv import get_venv
 from emake.build import build_wheel, build_sdist, build_all, clean
-from emake.wheel import test_manylinux_wheel
+from emake.wheel import build_manylinux_wheel, test_manylinux_wheel
 
 
 def create_parser() -> argparse.ArgumentParser:
@@ -52,6 +52,22 @@ def add_test_parser(subparsers) -> argparse.ArgumentParser:
         help="Test using Docker with a built wheel instead of local code",
     )
     parser.add_argument(
+        "--arch",
+        default="x86_64",
+        help="Target architecture for wheel testing (default: x86_64)",
+    )
+    parser.add_argument(
+        "--libc",
+        default="glibc",
+        choices=["glibc", "musl"],
+        help="Target libc for wheel testing (default: glibc)",
+    )
+    parser.add_argument(
+        "--python",
+        default="3.11",
+        help="Python version for wheel testing (default: 3.11)",
+    )
+    parser.add_argument(
         "path",
         nargs="?",
         default="tests/",
@@ -70,6 +86,22 @@ def add_wheel_parser(subparsers) -> argparse.ArgumentParser:
         "--native",
         action="store_true",
         help="Build platform-specific wheel instead of pure Python wheel",
+    )
+    parser.add_argument(
+        "--arch",
+        default="x86_64",
+        help="Target architecture for manylinux build (default: x86_64)",
+    )
+    parser.add_argument(
+        "--libc",
+        default="glibc",
+        choices=["glibc", "musl"],
+        help="Target libc for manylinux build (default: glibc)",
+    )
+    parser.add_argument(
+        "--python",
+        default="3.11",
+        help="Python version for manylinux build (default: 3.11)",
     )
     return parser
 
@@ -136,7 +168,7 @@ def cmd_requirements(args) -> int:
 def cmd_test(args) -> int:
     """Handle the test command."""
     if args.wheel:
-        test_manylinux_wheel(None)
+        test_manylinux_wheel(None, arch=args.arch, libc=args.libc, python=args.python)
         return 0
 
     venv = get_venv()
@@ -146,10 +178,15 @@ def cmd_test(args) -> int:
 
 def cmd_wheel(args) -> int:
     """Handle the wheel command."""
-    config = get_project_config()
-    venv = get_venv()
-    venv.ensure_build_tools()
-    build_wheel(venv, config, native=args.native)
+    if args.native:
+        # Manylinux build using Docker (--native enables cross-compilation)
+        build_manylinux_wheel(arch=args.arch, libc=args.libc, python=args.python)
+    else:
+        # Local build
+        config = get_project_config()
+        venv = get_venv()
+        venv.ensure_build_tools()
+        build_wheel(venv, config, native=False)
     return 0
 
 

@@ -14,11 +14,14 @@ DEFAULT_PYTHON = "3.11"
 
 def check_docker() -> bool:
     """Check if Docker is available."""
-    result = subprocess.run(
-        ["docker", "--version"],
-        capture_output=True,
-    )
-    return result.returncode == 0
+    try:
+        result = subprocess.run(
+            ["docker", "--version"],
+            capture_output=True,
+        )
+        return result.returncode == 0
+    except FileNotFoundError:
+        return False
 
 
 def get_arch() -> str:
@@ -151,13 +154,19 @@ def test_manylinux_wheel(
         print("Error: Docker is not available", file=sys.stderr)
         sys.exit(1)
 
-    # Find wheel if not provided
+# Find wheel if not provided
     if wheel_path is None:
-        wheelhouse = Path("wheelhouse")
-        if wheelhouse.exists():
-            wheels = list(wheelhouse.glob(f"*_{arch}.whl"))
-            if wheels:
-                wheel_path = wheels[0]
+        # Check wheelhouse for manylinux wheels, then dist for any wheel
+        for directory in ["wheelhouse", "dist"]:
+            dir_path = Path(directory)
+            if dir_path.exists():
+                # Try architecture-specific first, then any wheel file
+                wheels = list(dir_path.glob(f"*_{arch}.whl"))
+                if not wheels:
+                    wheels = list(dir_path.glob("*.whl"))
+                if wheels:
+                    wheel_path = wheels[0]
+                    break
 
     if wheel_path is None or not wheel_path.exists():
         print(f"Error: No wheel found for architecture {arch}", file=sys.stderr)

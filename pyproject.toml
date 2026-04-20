@@ -21,7 +21,7 @@ keywords = [
     "build",
     "make",
     "makefile",
-    " automation",
+    "automation",
     "development",
 ]
 dependencies = []
