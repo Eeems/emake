@@ -2,7 +2,6 @@
 
 import glob
 import shutil
-import subprocess
 import sys
 from pathlib import Path
 
@@ -26,10 +25,9 @@ def build_sdist(venv: VirtualEnvironment) -> None:
     dist_dir.mkdir(exist_ok=True)
 
     print("Building sdist...")
-    _ = subprocess.run(
-        [str(venv.python), "-m", "build", "--sdist"],
-        check=True,
-    )
+    if venv.run("-um", "build", "--sdist").returncode:
+        raise RuntimeError("sdist build failed")
+
     print("sdist built successfully")
 
 
