@@ -7,5 +7,3 @@ try:
 
 except PackageNotFoundError:
     __version__ = "dev"
-
-print(f" Loaded emake version {__version__}")

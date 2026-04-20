@@ -18,6 +18,7 @@ from .test import run_tests
 from .venv import get_venv
 from .wheel import (
     build_manylinux_wheel,
+    check_docker,
     test_manylinux_wheel,
 )
 
@@ -105,6 +106,16 @@ def cmd_clean(_args: argparse.Namespace) -> int:
 def cmd_lint(args: argparse.Namespace) -> int:
     """Handle the lint command."""
     return run_lint(get_venv(), fix=args.fix)  # pyright: ignore[reportAny]
+
+
+def cmd_status(_args: argparse.Namespace) -> int:
+    """Handle the status command."""
+    config = get_project_config()
+    venv = get_venv()
+    print(f"Project: {config.name}-{config.version}")
+    print(f"Docker: {'installed' if check_docker() else 'missing'}")
+    print(f"Venv: {'installed' if venv.exists else 'missing'}")
+    return 0
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -221,6 +232,11 @@ def main(argv: list[str] | None = None) -> int:
         help="Automatically fix issues where supported",
     )
 
+    _ = subparsers.add_parser(
+        "status",
+        help="Output status information",
+    )
+
     args = parser.parse_args(argv)
 
     try:
@@ -231,6 +247,7 @@ def main(argv: list[str] | None = None) -> int:
             "build": cmd_build,
             "clean": cmd_clean,
             "lint": cmd_lint,
+            "status": cmd_status,
         }[args.command](args)  # pyright: ignore[reportAny]
 
     except Exception as e:

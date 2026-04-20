@@ -1,14 +1,8 @@
 """Docker-based manylinux wheel building for emake."""
 
-import os
 import subprocess
 import sys
 from pathlib import Path
-
-# Default values
-DEFAULT_LIBC = "glibc"
-DEFAULT_ARCH = "x86_64"
-DEFAULT_PYTHON = "3.11"
 
 
 def check_docker() -> bool:
@@ -24,22 +18,7 @@ def check_docker() -> bool:
         return False
 
 
-def get_arch() -> str:
-    """Get architecture from environment or use default."""
-    return os.environ.get("arch", DEFAULT_ARCH)
-
-
-def get_libc() -> str:
-    """Get libc from environment or use default."""
-    return os.environ.get("libc", DEFAULT_LIBC)
-
-
-def get_python() -> str:
-    """Get Python version from environment or use default."""
-    return os.environ.get("python", DEFAULT_PYTHON)
-
-
-def get_python_interpreter(python_version: str = DEFAULT_PYTHON) -> str:
+def get_python_interpreter(python_version: str) -> str:
     """Get the Python interpreter tag for manylinux.
 
     Args:
@@ -51,7 +30,7 @@ def get_python_interpreter(python_version: str = DEFAULT_PYTHON) -> str:
     return f"cp{python_version.replace('.', '')}-cp{python_version.replace('.', '')}"
 
 
-def get_docker_image(arch: str, libc: str) -> str:
+def get_manylinux_image(arch: str, libc: str) -> str:
     """Get the Docker image for the given architecture and libc.
 
     Args:
@@ -63,19 +42,21 @@ def get_docker_image(arch: str, libc: str) -> str:
     """
     if libc == "musl":
         return f"musllinux_1_2_{arch}"
-    elif arch == "armv7l":
+
+    if arch == "armv7l":
         return f"manylinux_2_35_{arch}"
-    elif arch == "riscv64":
+
+    if arch == "riscv64":
         return f"manylinux_2_39_{arch}"
-    else:
-        return f"manylinux_2_34_{arch}"
+
+    return f"manylinux_2_34_{arch}"
 
 
 def build_manylinux_wheel(
     native: bool,
-    arch: str | None = None,
-    libc: str | None = None,
-    python: str | None = None,
+    arch: str,
+    libc: str,
+    python: str,
 ) -> None:
     """Build a manylinux wheel using Docker.
 
@@ -84,15 +65,12 @@ def build_manylinux_wheel(
         libc: Target libc. Defaults to environment or "glibc".
         python: Python version. Defaults to environment or "3.11".
     """
-    arch = arch or get_arch()
-    libc = libc or get_libc()
-    python = python or get_python()
 
     if not check_docker():
         print("Error: Docker is not available", file=sys.stderr)
         sys.exit(1)
 
-    image = get_docker_image(arch, libc)
+    image = get_manylinux_image(arch, libc)
     python_interpreter = get_python_interpreter(python)
 
     flags: list[str] = []
@@ -163,10 +141,6 @@ def test_manylinux_wheel(
         libc: Target libc. Defaults to environment or "glibc".
         python: Python version. Defaults to environment or "3.11".
     """
-    arch = arch or get_arch()
-    libc = libc or get_libc()
-    python = python or get_python()
-
     if not check_docker():
         print("Error: Docker is not available", file=sys.stderr)
         sys.exit(1)
@@ -186,8 +160,7 @@ def test_manylinux_wheel(
                     break
 
     if wheel_path is None or not wheel_path.exists():
-        print(f"Error: No wheel found for architecture {arch}", file=sys.stderr)
-        sys.exit(1)
+        raise FileNotFoundError(f"Error: No wheel found for architecture {arch}")
 
     # Create test script
     script = f"""
@@ -207,8 +180,53 @@ python -m pytest -vv tests;
     if libc == "musl":
         image = f"python:{python}-alpine"
         script = f"apk add --no-cache git;{script}"
+
     else:
         image = f"python:{python}"
+
+    def install_rust() -> str:
+        match libc:
+            case "musl":
+                return "apk add --no-cache gcc musl-dev python3-dev libffi-dev openssl-dev cargo pkgconfig;"
+
+            case "glibc":
+                return 'apt-get update;DEBIAN_FRONTEND="noninteractive" apt-get install -y rustc cargo;'
+
+            case _:
+                raise NotImplementedError(f"ERROR: Unknown libc {libc}")
+
+    match arch:
+        case "i686":
+            script = f"{install_rust()}{script}"
+            platform = "linux/386"
+
+        case "s390x":
+            script = f"{install_rust()}{script}"
+            platform = "linux/s390x"
+
+        case "riscv64":
+            if python == "3.11" and libc == "glibc":
+                print(
+                    "WARNING: python image does not support cp311-manylinux_2_39_riscv64, exiting without error",
+                    file=sys.stderr,
+                )
+                return
+
+            script = f"{install_rust()}{script}"
+            platform = "linux/riscv64"
+
+        case "ppc64le":
+            platform = "linux/ppc64le"
+            if libc == "musl":
+                script = f"{install_rust()}{script}"
+
+        case "armv7l":
+            platform = "linux/arm/v7"
+            if libc == "musl":
+                script = f"{install_rust()}{script}"
+
+        case _:
+            platform = f"linux/{arch}"
 
     # Setup binfmt for non-x86_64 architectures
     if arch != "x86_64":
@@ -234,8 +252,7 @@ python -m pytest -vv tests;
             "--rm",
             "--volume",
             f"{Path.cwd()}:/src",
-            "--platform",
-            f"linux/{arch}" if arch != "x86_64" else "linux/amd64",
+            f"--platform={platform}",
             image,
             "/bin/sh",
             "-ec",
