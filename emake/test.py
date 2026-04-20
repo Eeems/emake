@@ -1,7 +1,5 @@
 """Test runner for emake."""
 
-import os
-import subprocess
 import sys
 
 from .venv import VirtualEnvironment
@@ -24,10 +22,4 @@ def run_tests(venv: VirtualEnvironment, path: str = "tests/") -> int:
         )
         return 1
 
-    env = os.environ.copy()
-    result = subprocess.run(
-        [str(venv.python), "-m", "pytest", "-vv", path],
-        env=env,
-        check=False,
-    )
-    return result.returncode
+    return venv.run("-um", "pytest", "-vv", path).returncode

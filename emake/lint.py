@@ -1,6 +1,5 @@
 """Linting for emake."""
 
-import subprocess
 from pathlib import Path
 
 from .venv import VirtualEnvironment
@@ -10,12 +9,7 @@ WHITELIST_DIR = Path(".emake/vulture")
 
 def run_tool(venv: VirtualEnvironment, tool: str, *args: str) -> bool:
     print(f"Running {tool}: ", end="", flush=True)
-    result = subprocess.run(
-        [venv.python, "-um", tool, *args],
-        capture_output=True,
-        text=True,
-        check=False,
-    )
+    result = venv.run("-um", tool, *args, capture_output=True)
     output = result.stdout + result.stderr
     if result.returncode != 0:
         print(f"FAIL ({result.returncode})")

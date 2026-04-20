@@ -55,6 +55,7 @@ class VirtualEnvironment:
         if not self.exists:
             self.create()
 
+    def ensure_pip(self) -> None:
         _ = self._chronic(self.python, "-um", "ensurepip")
         _ = self._chronic(self.pip, "install", "--upgrade", "pip")
 
@@ -74,16 +75,19 @@ class VirtualEnvironment:
     def ensure_build_tools(self) -> None:
         """Ensure build and wheel are installed in the venv."""
         self.ensure()
+        self.ensure_pip()
         _ = self._chronic(self.pip, "install", "build", "wheel")
 
     def ensure_test_tools(self) -> None:
         """Ensure pytest is installed in the venv."""
         self.ensure()
+        self.ensure_pip()
         _ = self._chronic(self.pip, "install", "pytest")
 
     def ensure_lint_tools(self) -> None:
         """Ensure linting tools are installed in the venv."""
         self.ensure()
+        self.ensure_pip()
         _ = self._chronic(
             self.pip,
             "install",
@@ -101,6 +105,7 @@ class VirtualEnvironment:
             extras: List of extra dependency groups to install.
         """
         self.ensure()
+        self.ensure_pip()
         # Build install command
         _ = self._chronic(
             self.pip,
@@ -112,7 +117,11 @@ class VirtualEnvironment:
         print("Dependencies installed")
 
     def run(
-        self, *args: str, env: dict[str, str] | None = None
+        self,
+        *args: str,
+        env: dict[str, str] | None = None,
+        chronic: bool = False,
+        capture_output: bool = False,
     ) -> subprocess.CompletedProcess[str]:
         """Run a command in the virtual environment.
 
@@ -128,10 +137,19 @@ class VirtualEnvironment:
         if env:
             run_env.update(env)
 
-        return self._chronic(
-            self.python,
-            *args,
-            env=run_env,
+        if chronic:
+            return self._chronic(
+                self.python,
+                *args,
+                env=run_env,
+            )
+
+        return subprocess.run(
+            [self.python, *args],
+            check=False,
+            env=env,
+            text=True,
+            capture_output=capture_output,
         )
 
 
