@@ -1,0 +1,37 @@
+[project]
+name = "emake"
+version = "0.0.1"
+description = "A Python module to replace Makefile workflows"
+requires-python = ">=3.11"
+license = "MIT"
+authors = [{name = "Eeems", email = "eeems@eeems.email"}]
+classifiers = [
+    "Development Status :: 1 - Planning",
+    "Environment :: Console",
+    "Intended Audience :: Developers",
+    "Operating System :: POSIX :: Linux",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Topic :: Software Development :: Build Tools",
+]
+keywords = [
+    "build",
+    "make",
+    "makefile",
+    " automation",
+    "development",
+]
+dependencies = []
+
+[project.scripts]
+emake = "emake.cli:main"
+
+[build-system]
+requires = ["setuptools>=70.1"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+packages = ["emake"]

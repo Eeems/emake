@@ -1,0 +1,199 @@
+"""Main CLI for emake."""
+
+import argparse
+import sys
+from pathlib import Path
+
+from emake import __version__
+from emake.config import get_project_config
+from emake.test import run_tests
+from emake.venv import get_venv
+from emake.build import build_wheel, build_sdist, build_all, clean
+
+
+def create_parser() -> argparse.ArgumentParser:
+    """Create the argument parser."""
+    parser = argparse.ArgumentParser(
+        prog="emake",
+        description="A Python module to replace Makefile workflows.",
+    )
+    parser.add_argument(
+        "--version",
+        action="version",
+        version=f"%(prog)s {__version__}",
+    )
+    return parser
+
+
+def add_requirements_parser(subparsers) -> argparse.ArgumentParser:
+    """Add the requirements subcommand."""
+    parser = subparsers.add_parser(
+        "requirements",
+        help="Create .venv and install dependencies",
+    )
+    parser.add_argument(
+        "extras",
+        nargs="*",
+        help="Optional dependency groups to install (e.g., web test dev)",
+    )
+    return parser
+
+
+def add_test_parser(subparsers) -> argparse.ArgumentParser:
+    """Add the test subcommand."""
+    parser = subparsers.add_parser(
+        "test",
+        help="Run tests (default: all tests in tests/)",
+    )
+    parser.add_argument(
+        "path",
+        nargs="?",
+        default="tests/",
+        help="Path to test file or directory (default: tests/)",
+    )
+    return parser
+
+
+def add_wheel_parser(subparsers) -> argparse.ArgumentParser:
+    """Add the wheel subcommand."""
+    parser = subparsers.add_parser(
+        "wheel",
+        help="Build wheel",
+    )
+    parser.add_argument(
+        "--native",
+        action="store_true",
+        help="Build platform-specific wheel instead of pure Python wheel",
+    )
+    return parser
+
+
+def add_sdist_parser(subparsers) -> argparse.ArgumentParser:
+    """Add the sdist subcommand."""
+    return subparsers.add_parser(
+        "sdist",
+        help="Build source distribution",
+    )
+
+
+def add_build_parser(subparsers) -> argparse.ArgumentParser:
+    """Add the build subcommand."""
+    return subparsers.add_parser(
+        "build",
+        help="Build wheel and source distribution",
+    )
+
+
+def add_clean_parser(subparsers) -> argparse.ArgumentParser:
+    """Add the clean subcommand."""
+    return subparsers.add_parser(
+        "clean",
+        help="Remove build artifacts",
+    )
+
+
+def validate_extras(config, extras: list[str]) -> list[str]:
+    """Validate that extras are defined in pyproject.toml.
+
+    Args:
+        config: ProjectConfig instance.
+        extras: List of extra names provided by user.
+
+    Returns:
+        List of validated extra names.
+
+    Raises:
+        ValueError: If an extra is not defined in pyproject.toml.
+    """
+    available = set(config.extras.keys())
+    for extra in extras:
+        if extra not in available:
+            raise ValueError(
+                f"Unknown extra '{extra}'. Available: {', '.join(sorted(available))}"
+            )
+    return extras
+
+
+def cmd_requirements(args) -> int:
+    """Handle the requirements command."""
+    config = get_project_config()
+    extras = validate_extras(config, args.extras) if args.extras else []
+
+    venv = get_venv()
+    venv.install(extras)
+    return 0
+
+
+def cmd_test(args) -> int:
+    """Handle the test command."""
+    config = get_project_config()
+    venv = get_venv()
+    return run_tests(venv, args.path)
+
+
+def cmd_wheel(args) -> int:
+    """Handle the wheel command."""
+    config = get_project_config()
+    venv = get_venv()
+    build_wheel(venv, config, native=args.native)
+    return 0
+
+
+def cmd_sdist(args) -> int:
+    """Handle the sdist command."""
+    config = get_project_config()
+    venv = get_venv()
+    build_sdist(venv, config)
+    return 0
+
+
+def cmd_build(args) -> int:
+    """Handle the build command."""
+    config = get_project_config()
+    venv = get_venv()
+    build_all(venv, config)
+    return 0
+
+
+def cmd_clean(args) -> int:
+    """Handle the clean command."""
+    clean()
+    return 0
+
+
+def main(argv: list[str] | None = None) -> int:
+    """Main entry point for emake."""
+    parser = create_parser()
+    subparsers = parser.add_subparsers(dest="command", required=True)
+
+    add_requirements_parser(subparsers)
+    add_test_parser(subparsers)
+    add_wheel_parser(subparsers)
+    add_sdist_parser(subparsers)
+    add_build_parser(subparsers)
+    add_clean_parser(subparsers)
+
+    args = parser.parse_args(argv)
+
+    # Dispatch to command handler
+    commands = {
+        "requirements": cmd_requirements,
+        "test": cmd_test,
+        "wheel": cmd_wheel,
+        "sdist": cmd_sdist,
+        "build": cmd_build,
+        "clean": cmd_clean,
+    }
+
+    try:
+        return commands[args.command](args)
+    except ValueError as e:
+        print(f"Error: {e}", file=sys.stderr)
+        return 1
+    except Exception as e:
+        print(f"Error: {e}", file=sys.stderr)
+        return 1
+
+
+if __name__ == "__main__":
+    sys.exit(main())
