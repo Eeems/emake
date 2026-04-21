@@ -49,7 +49,6 @@ def cmd_requirements(args: argparse.Namespace) -> int:
     """Handle the requirements command."""
     config = get_project_config()
     extras = validate_extras(config, args.extras) if args.extras else []  # pyright: ignore[reportAny]
-
     venv = get_venv()
     venv.install(extras)
     return 0

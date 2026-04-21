@@ -41,13 +41,20 @@ class VirtualEnvironment:
             text=True,
             env=env,
         )
-        if check and proc.returncode != 0:
-            raise subprocess.CalledProcessError(
-                proc.returncode,
-                proc.args,  # pyright: ignore[reportAny]
-                proc.stdout,
-                proc.stderr,
-            )
+        if proc.returncode != 0:
+            if proc.stdout:
+                print(proc.stdout)
+
+            if proc.stderr:
+                print(proc.stderr, file=sys.stderr)
+
+            if check:
+                raise subprocess.CalledProcessError(
+                    proc.returncode,
+                    proc.args,  # pyright: ignore[reportAny]
+                    proc.stdout,
+                    proc.stderr,
+                )
 
         return proc
 
@@ -106,7 +113,6 @@ class VirtualEnvironment:
         """
         self.ensure()
         self.ensure_pip()
-        # Build install command
         _ = self._chronic(
             self.pip,
             "install",
@@ -114,7 +120,6 @@ class VirtualEnvironment:
             "--editable",
             f".[{','.join(extras)}]" if extras else ".",
         )
-        print("Dependencies installed")
 
     def run(
         self,

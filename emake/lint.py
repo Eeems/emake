@@ -42,6 +42,7 @@ def run_lint(venv: VirtualEnvironment, fix: bool = False) -> int:
         Exit code - number of tools that failed.
     """
     venv.ensure_lint_tools()
+    venv.install()
     tools = [
         ("ruff", "check", *(["--fix"] if fix else [])),
         ("basedpyright", "--project=pyproject.toml"),
@@ -66,13 +67,11 @@ def run_lint(venv: VirtualEnvironment, fix: bool = False) -> int:
             for tool, future in futures.items():
                 if future.done():
                     returncode, _, _ = future.result()
-                    # Replace spinner with result - move UP to correct line
                     print(
                         f"{tool}: {'PASS' if not returncode else f'FAIL ({returncode})'}"
                     )
                     continue
 
-                # Update spinner - move UP to correct line then rewrite
                 print(f"{tool}: [{SPINNER_FRAMES[spinner_idx]}]")
 
             print("", end="", flush=True)
