@@ -68,6 +68,13 @@ class VirtualEnvironment:
         *args: Path | str,
         chronic: bool = False,
     ) -> subprocess.CompletedProcess[str]:
+        if not sys.stdout.isatty():
+            print(f"{action}...")
+            if chronic:
+                return self._chronic(*args)
+
+            return subprocess.run(args, text=True, capture_output=True, check=False)
+
         print(f"{action}: [{SPINNER_FRAMES[0]}]", end="", flush=True)
         proc = subprocess.Popen(
             args,

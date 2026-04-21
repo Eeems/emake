@@ -61,7 +61,14 @@ def run_lint(venv: VirtualEnvironment, config: ProjectConfig, fix: bool = False)
             )
             for tool, *args in tools
         }
+        if not sys.stdout.isatty():
+            print("Running linters...")
+
         while not all(x.done() for x in futures.values()):
+            if not sys.stdout.isatty():
+                time.sleep(0.1)
+                continue
+
             spinner_idx = (spinner_idx + 1) % len(SPINNER_FRAMES)
             for tool, future in futures.items():
                 if future.done():
@@ -80,6 +87,7 @@ def run_lint(venv: VirtualEnvironment, config: ProjectConfig, fix: bool = False)
     for tool, future in futures.items():
         returncode, stdout, stderr = future.result()
         print(f"{tool}: {'PASS' if not returncode else f'FAIL ({returncode})'}")
+
         if returncode:
             print(stdout)
             print(stderr, file=sys.stderr)
