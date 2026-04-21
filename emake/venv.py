@@ -5,6 +5,8 @@ import subprocess
 import sys
 from pathlib import Path
 
+SPINNER_FRAMES = ["⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"]
+
 
 class VirtualEnvironment:
     """Manages a virtual environment."""
@@ -18,6 +20,8 @@ class VirtualEnvironment:
         self.path: Path = path.resolve()
         self.python: Path = self.path / "bin" / "python"
         self.pip: Path = self.path / "bin" / "pip"
+        self.ensure()
+        self.ensure_pip()
 
     @property
     def exists(self) -> bool:
@@ -58,44 +62,116 @@ class VirtualEnvironment:
 
         return proc
 
+    def _spinner(
+        self,
+        action: str,
+        *args: Path | str,
+        chronic: bool = False,
+    ) -> subprocess.CompletedProcess[str]:
+        print(f"{action}: [{SPINNER_FRAMES[0]}]", end="", flush=True)
+        proc = subprocess.Popen(
+            args,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+        )
+        spinner_idx = 0
+        while True:
+            try:
+                _ = proc.wait(0.1)
+                break
+
+            except subprocess.TimeoutExpired:
+                pass
+
+            spinner_idx = (spinner_idx + 1) % len(SPINNER_FRAMES)
+            print(
+                f"\r{action}: [{SPINNER_FRAMES[spinner_idx]}]",
+                end="",
+                flush=True,
+            )
+
+        print(
+            "\r" + " " * (len(action) + 4 + len(SPINNER_FRAMES[spinner_idx])) + "\r",
+            end="",
+        )
+
+        stdout = None
+        if proc.stdout is not None:
+            stdout = proc.stdout.read()
+
+        stderr = None
+        if proc.stderr is not None:
+            stderr = proc.stderr.read()
+
+        if chronic and proc.returncode:
+            if proc.stdout:
+                print(proc.stdout)
+
+            if proc.stderr:
+                print(proc.stderr, file=sys.stderr)
+
+            raise subprocess.CalledProcessError(proc.returncode, args, stdout, stderr)
+
+        return subprocess.CompletedProcess(args, proc.returncode, stdout, stderr)
+
     def ensure(self) -> None:
-        if not self.exists:
-            self.create()
+        if self.exists:
+            return
 
-    def ensure_pip(self) -> None:
-        _ = self._chronic(self.python, "-um", "ensurepip")
-        _ = self._chronic(self.pip, "install", "--upgrade", "pip")
-
-    def create(self) -> None:
-        """Create the virtual environment."""
-        print(f"Creating virtual environment at {self.path}")
-        _ = self._chronic(
+        _ = self._spinner(
+            "Creating virtual environment",
             "python" if "__compiled__" in globals() else sys.executable,
             "-m",
             "venv",
             "--system-site-packages",
             "--upgrade",
-            "--clear",
             self.path,
+            chronic=True,
+        )
+
+    def ensure_pip(self) -> None:
+        _ = self._spinner(
+            "Ensuring pip is installed",
+            self.python,
+            "-um",
+            "ensurepip",
+            chronic=True,
+        )
+        _ = self._spinner(
+            "Upgrading pip",
+            self.pip,
+            "install",
+            "--upgrade",
+            "pip",
+            chronic=True,
         )
 
     def ensure_build_tools(self) -> None:
         """Ensure build and wheel are installed in the venv."""
-        self.ensure()
-        self.ensure_pip()
-        _ = self._chronic(self.pip, "install", "build", "wheel")
+        _ = self._spinner(
+            "Installing build tools",
+            self.pip,
+            "install",
+            "build",
+            "wheel",
+            chronic=True,
+        )
 
     def ensure_test_tools(self) -> None:
         """Ensure pytest is installed in the venv."""
-        self.ensure()
-        self.ensure_pip()
-        _ = self._chronic(self.pip, "install", "pytest")
+        _ = self._spinner(
+            "Installing test tools",
+            self.pip,
+            "install",
+            "pytest",
+            chronic=True,
+        )
 
     def ensure_lint_tools(self) -> None:
         """Ensure linting tools are installed in the venv."""
-        self.ensure()
-        self.ensure_pip()
-        _ = self._chronic(
+        _ = self._spinner(
+            "Installing lint tools",
             self.pip,
             "install",
             "ruff",
@@ -103,6 +179,7 @@ class VirtualEnvironment:
             "basedpyright",
             "dodgy",
             "pyroma",
+            chronic=True,
         )
 
     def install(self, *extras: str) -> None:
@@ -111,14 +188,14 @@ class VirtualEnvironment:
         Args:
             extras: List of extra dependency groups to install.
         """
-        self.ensure()
-        self.ensure_pip()
-        _ = self._chronic(
+        _ = self._spinner(
+            "Installing requirements",
             self.pip,
             "install",
             "--quiet",
             "--editable",
             f".[{','.join(extras)}]" if extras else ".",
+            chronic=True,
         )
 
     def run(
@@ -137,7 +214,6 @@ class VirtualEnvironment:
         Returns:
             CompletedProcess instance.
         """
-        self.ensure()
         run_env: dict[str, str] = os.environ.copy()
         if env:
             run_env.update(env)

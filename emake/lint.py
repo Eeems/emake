@@ -5,9 +5,10 @@ import time
 from concurrent.futures import ThreadPoolExecutor
 
 from .config import ProjectConfig
-from .venv import VirtualEnvironment
-
-SPINNER_FRAMES = ["⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"]
+from .venv import (
+    SPINNER_FRAMES,
+    VirtualEnvironment,
+)
 
 
 def run_lint_async(
