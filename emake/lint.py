@@ -3,11 +3,9 @@
 import sys
 import time
 from concurrent.futures import ThreadPoolExecutor
-from pathlib import Path
 
+from .config import ProjectConfig
 from .venv import VirtualEnvironment
-
-WHITELIST_DIR = Path(".emake/vulture")
 
 SPINNER_FRAMES = ["⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"]
 
@@ -31,7 +29,7 @@ def run_lint_async(
     return result.returncode, result.stdout, result.stderr
 
 
-def run_lint(venv: VirtualEnvironment, fix: bool = False) -> int:
+def run_lint(venv: VirtualEnvironment, config: ProjectConfig, fix: bool = False) -> int:
     """Run linting tools concurrently.
 
     Args:
@@ -42,7 +40,7 @@ def run_lint(venv: VirtualEnvironment, fix: bool = False) -> int:
         Exit code - number of tools that failed.
     """
     venv.ensure_lint_tools()
-    venv.install()
+    venv.install(*[x for x in config.extras if x in ("test", "dev", "lint")])
     tools = [
         ("ruff", "check", *(["--fix"] if fix else [])),
         ("basedpyright", "--project=pyproject.toml"),

@@ -105,7 +105,7 @@ class VirtualEnvironment:
             "pyroma",
         )
 
-    def install(self, extras: list[str] | None = None) -> None:
+    def install(self, *extras: str) -> None:
         """Install the package with optional extras.
 
         Args:

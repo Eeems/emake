@@ -50,7 +50,7 @@ def cmd_requirements(args: argparse.Namespace) -> int:
     config = get_project_config()
     extras = validate_extras(config, args.extras) if args.extras else []  # pyright: ignore[reportAny]
     venv = get_venv()
-    venv.install(extras)
+    venv.install(*extras)
     return 0
 
 
@@ -104,7 +104,7 @@ def cmd_clean(_args: argparse.Namespace) -> int:
 
 def cmd_lint(args: argparse.Namespace) -> int:
     """Handle the lint command."""
-    return run_lint(get_venv(), fix=args.fix)  # pyright: ignore[reportAny]
+    return run_lint(get_venv(), get_project_config(), fix=args.fix)  # pyright: ignore[reportAny]
 
 
 def cmd_status(_args: argparse.Namespace) -> int:
