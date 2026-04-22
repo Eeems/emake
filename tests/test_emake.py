@@ -4,9 +4,9 @@
 
 def test_config() -> None:
     """Test that config can be loaded."""
-    from emake.config import get_project_config  # noqa: PLC0415
+    from emake.config import ProjectConfig  # noqa: PLC0415
 
-    config = get_project_config()
+    config = ProjectConfig()
     assert config.name == "emake"
 
 

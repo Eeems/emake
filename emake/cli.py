@@ -12,7 +12,7 @@ from .build import (
 )
 from .config import (
     ProjectConfig,
-    get_project_config,
+    diff,
 )
 from .lint import run_lint
 from .test import run_tests
@@ -37,7 +37,8 @@ def validate_extras(config: ProjectConfig, extras: list[str]) -> list[str]:
     Raises:
         ValueError: If an extra is not defined in pyproject.toml.
     """
-    available = set(config.extras.keys())
+    config_extras = config.extras if config.extras is not None else {}
+    available = set(config_extras.keys())
     for extra in extras:
         if extra not in available:
             raise ValueError(
@@ -106,7 +107,7 @@ def cmd_init(args: argparse.Namespace, parser: argparse.ArgumentParser) -> int:
 
 def cmd_requirements(args: argparse.Namespace, _parser: argparse.ArgumentParser) -> int:
     """Handle the requirements command."""
-    config = get_project_config()
+    config = ProjectConfig()
     extras = validate_extras(config, args.extras) if args.extras else []  # pyright: ignore[reportAny]
     venv = get_venv()
     venv.install(*extras)
@@ -163,12 +164,17 @@ def cmd_clean(_args: argparse.Namespace, _parser: argparse.ArgumentParser) -> in
 
 def cmd_lint(args: argparse.Namespace, _parser: argparse.ArgumentParser) -> int:
     """Handle the lint command."""
-    return run_lint(get_venv(), get_project_config(), fix=args.fix)  # pyright: ignore[reportAny]
+    return run_lint(get_venv(), ProjectConfig(), fix=args.fix)  # pyright: ignore[reportAny]
+
+
+def cmd_config_diff(_args: argparse.Namespace, _parser: argparse.ArgumentParser) -> int:
+    """Handle the config-diff command."""
+    return diff()
 
 
 def cmd_status(_args: argparse.Namespace, _parser: argparse.ArgumentParser) -> int:
     """Handle the status command."""
-    config = get_project_config()
+    config = ProjectConfig()
     venv = get_venv()
     print(f"Project: {config.name}-{config.version}")
     print(f"Docker: {'installed' if check_docker() else 'missing'}")
@@ -295,6 +301,11 @@ def main(argv: list[str] | None = None) -> int:
         help="Output status information",
     )
 
+    _ = subparsers.add_parser(
+        "config-diff",
+        help="Compare project's pyproject.toml against template",
+    )
+
     subparser = subparsers.add_parser(
         "init",
         help="Initialize a new project",
@@ -315,6 +326,7 @@ def main(argv: list[str] | None = None) -> int:
         "lint": cmd_lint,
         "status": cmd_status,
         "init": cmd_init,
+        "config-diff": cmd_config_diff,
     }[args.command](args, parser)  # pyright: ignore[reportAny]
 
 

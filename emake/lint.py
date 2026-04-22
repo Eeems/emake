@@ -1,5 +1,7 @@
 """Linting for emake."""
 
+import os
+import subprocess
 import sys
 import time
 from concurrent.futures import ThreadPoolExecutor
@@ -9,6 +11,8 @@ from .venv import (
     SPINNER_FRAMES,
     VirtualEnvironment,
 )
+
+MODULE_PATH = os.path.dirname(os.path.dirname(__file__))
 
 
 def run_lint_async(
@@ -26,8 +30,22 @@ def run_lint_async(
     Returns:
         Tuple of (tool name, success, returncode, output).
     """
-    result = venv.run("-um", tool, *args, capture_output=True)
-    return result.returncode, result.stdout, result.stderr
+    if tool == "emake":
+        env = os.environ.copy()
+        path = env.get("PYTHONPATH", "").split(os.pathsep)
+        env["PYTHONPATH"] = os.pathsep.join([MODULE_PATH] + path)
+        proc = subprocess.run(
+            [sys.executable, "-um", tool, *args],
+            check=False,
+            capture_output=True,
+            text=True,
+            env=env,
+        )
+
+    else:
+        proc = venv.run("-um", tool, *args, capture_output=True)
+
+    return proc.returncode, proc.stdout, proc.stderr
 
 
 def run_lint(venv: VirtualEnvironment, config: ProjectConfig, fix: bool = False) -> int:
@@ -41,12 +59,14 @@ def run_lint(venv: VirtualEnvironment, config: ProjectConfig, fix: bool = False)
         Exit code - number of tools that failed.
     """
     venv.ensure_lint_tools()
-    venv.install(*[x for x in config.extras if x in ("test", "dev", "lint")])
+    extras = config.extras if config.extras is not None else {}
+    venv.install(*[x for x in extras if x in ("test", "dev", "lint")])
     tools = [
         ("ruff", "check", *(["--fix"] if fix else [])),
         ("basedpyright", "--project=pyproject.toml"),
         ("dodgy", "--zero-exit"),
         ("pyroma", "."),
+        ("emake", "config-diff"),
     ]
 
     failed = 0
