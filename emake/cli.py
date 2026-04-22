@@ -3,6 +3,7 @@
 import argparse
 import os
 import sys
+from importlib import resources
 
 from . import __version__
 from .build import (
@@ -45,7 +46,65 @@ def validate_extras(config: ProjectConfig, extras: list[str]) -> list[str]:
     return extras
 
 
-def cmd_requirements(args: argparse.Namespace) -> int:
+def get_arg(value: str | None, prompt: str) -> str | None:
+    """Get value from flag or prompt if interactive terminal."""
+    if value:
+        return value
+    if sys.stdin.isatty():
+        return input(prompt)
+    return None
+
+
+def cmd_init(args: argparse.Namespace, parser: argparse.ArgumentParser) -> int:
+    """Handle the init command."""
+    name = get_arg(args.name, "Project name: ")  # pyright: ignore[reportAny]
+    description = get_arg(args.description, "Description: ")  # pyright: ignore[reportAny]
+    author_name = get_arg(args.author_name, "Author name: ")  # pyright: ignore[reportAny]
+    author_email = get_arg(args.author_email, "Author email: ")  # pyright: ignore[reportAny]
+    license_spdx = get_arg(args.author_email, "License spdx identifier: ")  # pyright: ignore[reportAny]
+
+    if (
+        name is None
+        or description is None
+        or author_name is None
+        or author_email is None
+        or license_spdx is None
+    ):
+        parser.print_usage()
+        return 1
+
+    if not os.path.exists("pyproject.toml"):
+        template = resources.files("emake").joinpath("pyproject.toml.tpl").read_text()
+        with open("pyproject.toml", "w") as f:
+            _ = f.write(
+                template.format(
+                    name=name,
+                    description=description,
+                    author_name=author_name,
+                    author_email=author_email,
+                    license_spdx=license_spdx,
+                    python_version=">=3.11",
+                )
+            )
+
+    os.makedirs(name, exist_ok=True)
+    file = os.path.join(name, "__init__.py")
+    if not os.path.exists(file):
+        with open(file, "w") as f:
+            _ = f.write("")
+
+    workflow_dir = os.path.join(".github", "workflows")
+    os.makedirs(workflow_dir, exist_ok=True)
+    file = os.path.join(workflow_dir, "build.yml")
+    if not os.path.exists(file):
+        template = resources.files("emake").joinpath("build.yml.tpl").read_text()
+        with open(file, "w") as f:
+            _ = f.write(template.format(project_name=name))
+
+    return 0
+
+
+def cmd_requirements(args: argparse.Namespace, _parser: argparse.ArgumentParser) -> int:
     """Handle the requirements command."""
     config = get_project_config()
     extras = validate_extras(config, args.extras) if args.extras else []  # pyright: ignore[reportAny]
@@ -54,7 +113,7 @@ def cmd_requirements(args: argparse.Namespace) -> int:
     return 0
 
 
-def cmd_test(args: argparse.Namespace) -> int:
+def cmd_test(args: argparse.Namespace, _parser: argparse.ArgumentParser) -> int:
     """Handle the test command."""
     if args.wheel:  # pyright: ignore[reportAny]
         test_manylinux_wheel(
@@ -70,7 +129,7 @@ def cmd_test(args: argparse.Namespace) -> int:
     return run_tests(venv, args.path)  # pyright: ignore[reportAny]
 
 
-def cmd_build(args: argparse.Namespace) -> int:
+def cmd_build(args: argparse.Namespace, _parser: argparse.ArgumentParser) -> int:
     """Handle the build command."""
     venv = get_venv()
     venv.ensure_build_tools()
@@ -96,18 +155,18 @@ def cmd_build(args: argparse.Namespace) -> int:
     return 0
 
 
-def cmd_clean(_args: argparse.Namespace) -> int:
+def cmd_clean(_args: argparse.Namespace, _parser: argparse.ArgumentParser) -> int:
     """Handle the clean command."""
     clean()
     return 0
 
 
-def cmd_lint(args: argparse.Namespace) -> int:
+def cmd_lint(args: argparse.Namespace, _parser: argparse.ArgumentParser) -> int:
     """Handle the lint command."""
     return run_lint(get_venv(), get_project_config(), fix=args.fix)  # pyright: ignore[reportAny]
 
 
-def cmd_status(_args: argparse.Namespace) -> int:
+def cmd_status(_args: argparse.Namespace, _parser: argparse.ArgumentParser) -> int:
     """Handle the status command."""
     config = get_project_config()
     venv = get_venv()
@@ -236,6 +295,15 @@ def main(argv: list[str] | None = None) -> int:
         help="Output status information",
     )
 
+    subparser = subparsers.add_parser(
+        "init",
+        help="Initialize a new project",
+    )
+    _ = subparser.add_argument("--name", help="Project name")
+    _ = subparser.add_argument("--description", help="Project description")
+    _ = subparser.add_argument("--author-name", help="Author name")
+    _ = subparser.add_argument("--author-email", help="Author email")
+
     args = parser.parse_args(argv)
 
     os.chdir(os.path.abspath(args.directory))  # pyright: ignore[reportAny]
@@ -246,7 +314,8 @@ def main(argv: list[str] | None = None) -> int:
         "clean": cmd_clean,
         "lint": cmd_lint,
         "status": cmd_status,
-    }[args.command](args)  # pyright: ignore[reportAny]
+        "init": cmd_init,
+    }[args.command](args, parser)  # pyright: ignore[reportAny]
 
 
 if __name__ == "__main__":
