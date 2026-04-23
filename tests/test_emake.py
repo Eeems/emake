@@ -33,6 +33,9 @@ requires-python = ">=3.11"
 requires = ["setuptools>=70.1", "nuitka>=4.0.6"]
 build-backend = "nuitka.distutils.Build"
 
+[project.optional-dependencies]
+test = ["pytest"]
+
 [tool.pyright]
 exclude = [".venv", "build"]
 
@@ -62,6 +65,9 @@ requires-python = ">=3.11"
 [build-system]
 requires = ["setuptools>=80", "nuitka>=4.0.6"]
 build-backend = "nuitka.distutils.Build"
+
+[project.optional-dependencies]
+test = ["pytest"]
 
 [tool.pyright]
 exclude = [".venv", "build"]
@@ -93,6 +99,9 @@ requires-python = ">=3.11"
 requires = ["setuptools>=60", "nuitka>=4.0.6"]
 build-backend = "nuitka.distutils.Build"
 
+[project.optional-dependencies]
+test = ["pytest"]
+
 [tool.pyright]
 exclude = [".venv", "build"]
 
@@ -122,6 +131,9 @@ requires-python = ">=3.11"
 [build-system]
 requires = ["setuptools==70.1", "nuitka>=4.0.6"]
 build-backend = "nuitka.distutils.Build"
+
+[project.optional-dependencies]
+test = ["pytest"]
 
 [tool.pyright]
 exclude = [".venv", "build"]
@@ -154,6 +166,9 @@ requires-python = ">=3.11"
 requires = ["setuptools>=70.1", "nuitka>=4.0.6,!=4.7"]
 build-backend = "nuitka.distutils.Build"
 
+[project.optional-dependencies]
+test = ["pytest"]
+
 [tool.pyright]
 exclude = [".venv", "build"]
 
@@ -183,6 +198,9 @@ requires-python = ">=3.11"
 [build-system]
 requires = ["setuptools>=70.1"]
 build-backend = "nuitka.distutils.Build"
+
+[project.optional-dependencies]
+test = ["pytest"]
 
 [tool.pyright]
 exclude = [".venv", "build"]
@@ -215,6 +233,9 @@ requires-python = ">=3.11"
 requires = ["setuptools>=70.1; python_version >= '3.11'", "nuitka>=4.0.6"]
 build-backend = "nuitka.distutils.Build"
 
+[project.optional-dependencies]
+test = ["pytest"]
+
 [tool.pyright]
 exclude = [".venv", "build"]
 
@@ -244,6 +265,9 @@ requires-python = ">=3.11"
 [build-system]
 requires = ["setuptools>=70.1; sys_platform == 'win32'", "nuitka>=4.0.6"]
 build-backend = "nuitka.distutils.Build"
+
+[project.optional-dependencies]
+test = ["pytest"]
 
 [tool.pyright]
 exclude = [".venv", "build"]
