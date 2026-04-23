@@ -2,7 +2,8 @@
 """Tests for emake module."""
 
 import os
-from contextlib import redirect_stdout
+import sys
+from contextlib import redirect_stderr, redirect_stdout
 from io import StringIO
 from pathlib import Path
 
@@ -43,14 +44,17 @@ exclude = [".venv", "build"]
     with open("pyproject.toml", "w") as f:
         _ = f.write(config_text)
 
-    output = StringIO()
-    with redirect_stdout(output):
+    stdout = StringIO()
+    stderr = StringIO()
+    with redirect_stdout(stdout), redirect_stderr(stderr):
         result = diff()
 
-    stdout = output.getvalue()
-    print(stdout)
+    stdout_text = stdout.getvalue()
+    print(stdout_text)
+    stderr_text = stderr.getvalue()
+    print(stderr_text, file=sys.stderr)
     assert result == 0
-    assert "requires" not in stdout
+    assert "missing coverage for" not in stderr_text
 
 
 def test_diff_newer_setuptools(tmp_path: Path) -> None:
@@ -79,14 +83,17 @@ exclude = [".venv", "build"]
     with open("pyproject.toml", "w") as f:
         _ = f.write(config_text)
 
-    output = StringIO()
-    with redirect_stdout(output):
+    stdout = StringIO()
+    stderr = StringIO()
+    with redirect_stdout(stdout), redirect_stderr(stderr):
         result = diff()
 
-    stdout = output.getvalue()
-    print(stdout)
+    stdout_text = stdout.getvalue()
+    print(stdout_text)
+    stderr_text = stderr.getvalue()
+    print(stderr_text, file=sys.stderr)
     assert result == 0
-    assert "requires" not in stdout
+    assert "missing coverage for" not in stderr_text
 
 
 def test_diff_older_setuptools(tmp_path: Path) -> None:
@@ -115,14 +122,17 @@ exclude = [".venv", "build"]
     with open("pyproject.toml", "w") as f:
         _ = f.write(config_text)
 
-    output = StringIO()
-    with redirect_stdout(output):
+    stdout = StringIO()
+    stderr = StringIO()
+    with redirect_stdout(stdout), redirect_stderr(stderr):
         result = diff()
 
-    stdout = output.getvalue()
-    print(stdout)
+    stdout_text = stdout.getvalue()
+    print(stdout_text)
+    stderr_text = stderr.getvalue()
+    print(stderr_text, file=sys.stderr)
     assert result == 1
-    assert "setuptools>=70.1" in stdout
+    assert "setuptools>=70.1" in stderr_text
 
 
 def test_diff_exact_version(tmp_path: Path) -> None:
@@ -151,15 +161,18 @@ exclude = [".venv", "build"]
     with open("pyproject.toml", "w") as f:
         _ = f.write(config_text)
 
-    output = StringIO()
-    with redirect_stdout(output):
+    stdout = StringIO()
+    stderr = StringIO()
+    with redirect_stdout(stdout), redirect_stderr(stderr):
         result = diff()
 
-    stdout = output.getvalue()
-    print(stdout)
+    stdout_text = stdout.getvalue()
+    print(stdout_text)
+    stderr_text = stderr.getvalue()
+    print(stderr_text, file=sys.stderr)
     # == should also satisfy >=70.1
     assert result == 0
-    assert "requires" not in stdout
+    assert "missing coverage for" not in stdout_text
 
 
 def test_diff_complex_specifier(tmp_path: Path) -> None:
@@ -188,14 +201,17 @@ exclude = [".venv", "build"]
     with open("pyproject.toml", "w") as f:
         _ = f.write(config_text)
 
-    output = StringIO()
-    with redirect_stdout(output):
+    stdout = StringIO()
+    stderr = StringIO()
+    with redirect_stdout(stdout), redirect_stderr(stderr):
         result = diff()
 
-    stdout = output.getvalue()
-    print(stdout)
+    stdout_text = stdout.getvalue()
+    print(stdout_text)
+    stderr_text = stderr.getvalue()
+    print(stderr_text, file=sys.stderr)
     assert result == 0
-    assert "requires" not in stdout
+    assert "missing coverage for" not in stderr_text
 
 
 def test_diff_nuitka_missing(tmp_path: Path) -> None:
@@ -224,15 +240,17 @@ exclude = [".venv", "build"]
     with open("pyproject.toml", "w") as f:
         _ = f.write(config_text)
 
-    output = StringIO()
-    with redirect_stdout(output):
+    stdout = StringIO()
+    stderr = StringIO()
+    with redirect_stdout(stdout), redirect_stderr(stderr):
         result = diff()
 
-    stdout = output.getvalue()
-    print(stdout)
+    stdout_text = stdout.getvalue()
+    print(stdout_text)
+    stderr_text = stderr.getvalue()
+    print(stderr_text, file=sys.stderr)
     assert result == 1
-    assert "nuitka" in stdout
-    assert "missing" in stdout
+    assert "missing coverage for nuitka" in stderr_text
 
 
 def test_diff_python_version_marker(tmp_path: Path) -> None:
@@ -261,14 +279,17 @@ exclude = [".venv", "build"]
     with open("pyproject.toml", "w") as f:
         _ = f.write(config_text)
 
-    output = StringIO()
-    with redirect_stdout(output):
+    stdout = StringIO()
+    stderr = StringIO()
+    with redirect_stdout(stdout), redirect_stderr(stderr):
         result = diff()
 
-    stdout = output.getvalue()
-    print(stdout)
+    stdout_text = stdout.getvalue()
+    print(stdout_text)
+    stderr_text = stderr.getvalue()
+    print(stderr_text, file=sys.stderr)
     assert result == 0
-    assert "requires" not in stdout
+    assert "missing coverage for" not in stderr_text
 
 
 def test_diff_sys_platform_marker(tmp_path: Path) -> None:
@@ -297,11 +318,14 @@ exclude = [".venv", "build"]
     with open("pyproject.toml", "w") as f:
         _ = f.write(config_text)
 
-    output = StringIO()
-    with redirect_stdout(output):
+    stdout = StringIO()
+    stderr = StringIO()
+    with redirect_stdout(stdout), redirect_stderr(stderr):
         result = diff()
 
-    stdout = output.getvalue()
-    print(stdout)
+    stdout_text = stdout.getvalue()
+    print(stdout_text)
+    stderr_text = stderr.getvalue()
+    print(stderr_text, file=sys.stderr)
     assert result == 1
-    assert "setuptools" in stdout
+    assert "missing coverage for setuptools" in stderr_text
