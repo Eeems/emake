@@ -57,7 +57,7 @@ class ProjectConfig:
         if project is None:
             return None
 
-        return project["name"]
+        return project.get("name")
 
     @property
     def description(self) -> str | None:
@@ -66,7 +66,7 @@ class ProjectConfig:
         if project is None:
             return None
 
-        return project["description"]
+        return project.get("description")
 
     @property
     def license(self) -> str | None:
@@ -75,23 +75,25 @@ class ProjectConfig:
         if project is None:
             return None
 
-        return project["license"]
+        return project.get("license")
 
     @property
-    def authors(self) -> list[tuple[str, str]] | None:
+    def authors(self) -> list[tuple[str | None, str | None]] | None:
         """Package name from [project].name."""
-        project: dict[str, list[dict[str, str]] | None] | None = self._data["project"]  # pyright: ignore[reportAny]
+        project: dict[str, list[dict[str, str | None]] | None] | None = self._data[  # pyright: ignore[reportAny]
+            "project"
+        ]
         if project is None:
             return None
 
-        authors = project["authors"]
+        authors = project.get("authors")
         if authors is None:
             return None
 
-        res: list[tuple[str, str]] = []
+        res: list[tuple[str | None, str | None]] = []
         for author in authors:
-            name = author["name"]
-            email = author["email"]
+            name = author.get("name")
+            email = author.get("email")
             res.append((name, email))
 
         return res
@@ -368,7 +370,13 @@ def diff() -> int:
         if difference:
             error(f"{name} expected {expected}, got {actual}")
 
-    project = ProjectConfig()
+    try:
+        project = ProjectConfig()
+
+    except TOMLDecodeError:
+        error("pyproject.toml is invalid")
+        return failed
+
     if project.name is None:
         error("'pyproject.toml' does not specify a 'name' value.")
 
@@ -379,7 +387,7 @@ def diff() -> int:
         error("'pyproject.toml' does not specify a 'requires_python' value.")
 
     if project.authors is None or not project.authors:
-        error("'pyproject.toml' does not specify a 'license' value.")
+        error("'pyproject.toml' does not specify a 'authors' value.")
         author_name = author_email = "x"
 
     else:
@@ -388,8 +396,8 @@ def diff() -> int:
     template_text = template.format(
         name=project.name or "x",
         description=project.description or "x",
-        author_name=author_name,
-        author_email=author_email,
+        author_name=author_name or "x",
+        author_email=author_email or "x",
         license_spdx=project.license,
         python_version=project.requires_python or "3",
     )
