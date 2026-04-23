@@ -91,6 +91,8 @@ jobs:
           set -e
           pip install -e .
           emake build --wheel
+      - name: Test wheel
+        run: emake test --wheel
       - uses: actions/upload-artifact@v6
         with:
           name: pip-wheel-none-any
@@ -125,10 +127,7 @@ jobs:
           pip install -e .
           emake build --native-wheel --arch ${{ matrix.arch }} --libc ${{ matrix.libc }} --python ${{ matrix.python }}
       - name: Testing wheel
-        run: |
-          set -e
-          pip install -e .
-          emake test --wheel --arch ${{ matrix.arch }} --libc ${{ matrix.libc }} --python ${{ matrix.python }}
+        run: emake test --wheel --arch ${{ matrix.arch }} --libc ${{ matrix.libc }} --python ${{ matrix.python }}
       - uses: actions/upload-artifact@v6
         with:
           name: pip-wheel-${{ matrix.python }}-${{ matrix.arch }}-${{ matrix.libc }}

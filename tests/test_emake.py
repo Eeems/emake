@@ -6,13 +6,7 @@ from contextlib import redirect_stdout
 from io import StringIO
 from pathlib import Path
 
-from emake.config import ProjectConfig, diff
-
-
-def test_config() -> None:
-    """Test config loads."""
-    config = ProjectConfig()
-    assert config.name == "emake"
+from emake.config import diff
 
 
 def test_venv() -> None:

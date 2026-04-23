@@ -169,7 +169,7 @@ def test_manylinux_wheel(
     script = f"""
 set -e
 cd /src;
-pip install "{wheel_path}"[test];
+pip install --root-user-action=ignore "{wheel_path}"[test];
 git config --global user.email 'root@localhost';
 git config --global user.name "Test Runner";
 git config --global init.defaultBranch trunk;
