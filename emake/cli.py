@@ -15,7 +15,6 @@ from .config import (
     diff,
 )
 from .lint import run_lint
-from .test import run_tests
 from .venv import get_venv
 from .wheel import (
     build_manylinux_wheel,
@@ -127,7 +126,7 @@ def cmd_test(args: argparse.Namespace, _parser: argparse.ArgumentParser) -> int:
 
     venv = get_venv()
     venv.ensure_test_tools()
-    return run_tests(venv, args.path)  # pyright: ignore[reportAny]
+    return venv.run("-um", "pytest", "-vv", "tests").returncode
 
 
 def cmd_build(args: argparse.Namespace, _parser: argparse.ArgumentParser) -> int:

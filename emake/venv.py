@@ -170,7 +170,8 @@ class VirtualEnvironment:
             "Installing test tools",
             self.pip,
             "install",
-            "pytest",
+            "-e",
+            ".[test]",
             chronic=True,
         )
 

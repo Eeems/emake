@@ -248,7 +248,9 @@ def _marker_covers(
 
     for env in test_envs:
         try:
-            exp_result = True if exp_marker is None else exp_marker.evaluate(environment=env)
+            exp_result = (
+                True if exp_marker is None else exp_marker.evaluate(environment=env)
+            )
             act_result = act_marker.evaluate(environment=env)
 
             if exp_result and not act_result:
@@ -324,11 +326,22 @@ def diff() -> int:
     with BytesIO(template_text.encode()) as template_io:
         template_config = ProjectConfig(template_io)
         project = ProjectConfig()
+
         if project.requires_python is None:
             print("Error: 'pyproject.toml' does not specify a 'requires-python' value.")
             failed += 1
 
         else:
+            if project.extras is None or "test" not in project.extras:
+                print("Error: 'test' optional dependency group is missing.")
+                failed += 1
+
+            elif requirements_not_satisfied_by(
+                ["pytest"], project.extras["test"], project.requires_python
+            ):
+                print("Error: pytest is not installed in the 'test' extras group.")
+                failed += 1
+
             missing = requirements_not_satisfied_by(
                 template_config.build_system_requires,
                 project.build_system_requires,
