@@ -95,6 +95,7 @@ def run_lint(venv: VirtualEnvironment, config: ProjectConfig, fix: bool = False)
 
             spinner_idx = (spinner_idx + 1) % len(SPINNER_FRAMES)
             for tool, future in futures.items():
+                print("\r", end="")
                 if future.done():
                     returncode, _, _ = future.result()
                     print(
@@ -106,7 +107,7 @@ def run_lint(venv: VirtualEnvironment, config: ProjectConfig, fix: bool = False)
 
             print("", end="", flush=True)
             time.sleep(0.1)
-            print("\x1b[1A" * len(tools), end="")
+            print("\x1b[2K\x1b[1A" * len(tools), end="")
 
     for tool, future in futures.items():
         returncode, stdout, stderr = future.result()

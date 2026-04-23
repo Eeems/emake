@@ -2,7 +2,7 @@
 name = "{name}"
 version = "0.0.1"
 description = "{description}"
-requires-python = "{python_version}"
+requires-python = ">={python_version}"
 license = "{license_spdx}"
 authors = [{{name = "{author_name}", email = "{author_email}"}}]
 classifiers = [

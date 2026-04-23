@@ -1,11 +1,12 @@
 """Parse pyproject.toml for project configuration."""
 
+import sys
 from collections import defaultdict
 from collections.abc import Mapping
 from importlib import resources
 from io import BytesIO
 from pathlib import Path
-from tomllib import load
+from tomllib import TOMLDecodeError, load
 from typing import (
     Any,
     cast,
@@ -50,12 +51,50 @@ class ProjectConfig:
         raise FileNotFoundError("pyproject.toml not found")
 
     @property
-    def name(self) -> str:
+    def name(self) -> str | None:
         """Package name from [project].name."""
-        project: dict[str, object] = self._data["project"]  # pyright: ignore[reportAny]
-        name_val = project["name"]
-        assert isinstance(name_val, str), name_val
-        return name_val
+        project: dict[str, str | None] | None = self._data["project"]  # pyright: ignore[reportAny]
+        if project is None:
+            return None
+
+        return project["name"]
+
+    @property
+    def description(self) -> str | None:
+        """Package description from [project].description."""
+        project: dict[str, str | None] | None = self._data["project"]  # pyright: ignore[reportAny]
+        if project is None:
+            return None
+
+        return project["description"]
+
+    @property
+    def license(self) -> str | None:
+        """Package license from [project].license."""
+        project: dict[str, str | None] | None = self._data["project"]  # pyright: ignore[reportAny]
+        if project is None:
+            return None
+
+        return project["license"]
+
+    @property
+    def authors(self) -> list[tuple[str, str]] | None:
+        """Package name from [project].name."""
+        project: dict[str, list[dict[str, str]] | None] | None = self._data["project"]  # pyright: ignore[reportAny]
+        if project is None:
+            return None
+
+        authors = project["authors"]
+        if authors is None:
+            return None
+
+        res: list[tuple[str, str]] = []
+        for author in authors:
+            name = author["name"]
+            email = author["email"]
+            res.append((name, email))
+
+        return res
 
     @property
     def version(self) -> str:
@@ -64,6 +103,16 @@ class ProjectConfig:
         version_val = project["version"]
         assert isinstance(version_val, str), version_val
         return version_val
+
+    @property
+    def emake(self) -> dict[str, list[str]]:
+        tool: dict[str, object] = self._data["tool"]  # pyright: ignore[reportAny]
+        value = tool.get("emake")
+        if value is None:
+            return {}
+
+        assert isinstance(value, dict), value
+        return cast(dict[str, list[str]], value)
 
     @property
     def extras(self) -> dict[str, list[str]] | None:
@@ -141,15 +190,6 @@ class ProjectConfig:
 
         assert isinstance(requires_python, str), requires_python
         return requires_python
-
-
-def _diff_lists(name: str, expected: list[str] | None, actual: list[str] | None) -> int:
-    difference = set(expected or []) - set(actual or [])
-    if not difference:
-        return 0
-
-    print(f"{name}: expected {expected}, got {actual}")
-    return 1
 
 
 def _get_min_version(spec: SpecifierSet) -> str | None:
@@ -314,33 +354,67 @@ def diff() -> int:
         Exit code - 0 if no differences, 1 if differences found.
     """
     template = resources.files("emake").joinpath("pyproject.toml.tpl").read_text()
-    template_text = template.format(
-        name="x",
-        description="x",
-        author_name="x",
-        author_email="x",
-        license_spdx="x",
-        python_version="x",
-    )
     failed = 0
+
+    def error(msg: str) -> None:
+        nonlocal failed
+        print(f"ERROR: {msg}", file=sys.stderr)
+        failed += 1
+
+    def diff_list(
+        name: str, expected: list[str] | None, actual: list[str] | None
+    ) -> None:
+        difference = set(expected or []) - set(actual or [])
+        if difference:
+            error(f"{name} expected {expected}, got {actual}")
+
+    project = ProjectConfig()
+    if project.name is None:
+        error("'pyproject.toml' does not specify a 'name' value.")
+
+    if project.license is None:
+        error("'pyproject.toml' does not specify a 'license' value.")
+
+    if project.requires_python is None:
+        error("'pyproject.toml' does not specify a 'requires_python' value.")
+
+    if project.authors is None or not project.authors:
+        error("'pyproject.toml' does not specify a 'license' value.")
+        author_name = author_email = "x"
+
+    else:
+        author_name, author_email = project.authors[0]
+
+    template_text = template.format(
+        name=project.name or "x",
+        description=project.description or "x",
+        author_name=author_name,
+        author_email=author_email,
+        license_spdx=project.license,
+        python_version=project.requires_python or "3",
+    )
     with BytesIO(template_text.encode()) as template_io:
-        template_config = ProjectConfig(template_io)
-        project = ProjectConfig()
+        try:
+            template_config = ProjectConfig(template_io)
+
+        except TOMLDecodeError:
+            error("Generated invalid pyproject.toml")
+            print("======================================", file=sys.stderr)
+            print(template_text, file=sys.stderr)
+            print("======================================", file=sys.stderr)
+            return failed
 
         if project.requires_python is None:
-            print("Error: 'pyproject.toml' does not specify a 'requires-python' value.")
-            failed += 1
+            error("'pyproject.toml' does not specify a 'requires-python' value.")
 
         else:
             if project.extras is None or "test" not in project.extras:
-                print("Error: 'test' optional dependency group is missing.")
-                failed += 1
+                error("'test' optional dependency group is missing.")
 
             elif requirements_not_satisfied_by(
                 ["pytest"], project.extras["test"], project.requires_python
             ):
-                print("Error: pytest is not installed in the 'test' extras group.")
-                failed += 1
+                error("pytest is not installed in the 'test' extras group.")
 
             missing = requirements_not_satisfied_by(
                 template_config.build_system_requires,
@@ -348,24 +422,24 @@ def diff() -> int:
                 project.requires_python,
             )
             if missing:
-                print(
+                error(
                     f"build-system.requires: missing coverage for {', '.join(missing)}"
                 )
-                failed = 1
 
         if template_config.build_backend != project.build_backend:
-            print(
+            error(
                 f"build-system.build-backend: expected {template_config.build_backend}, got {project.build_backend}"
             )
-            failed = 1
 
-        failed += _diff_lists(
+        diff_list(
             "tool.pyright.exclude",
             template_config.pyright_exclude,
             project.pyright_exclude,
         )
-        failed += _diff_lists(
-            "tool.ruff.exclude", template_config.ruff_exclude, project.ruff_exclude
+        diff_list(
+            "tool.ruff.exclude",
+            template_config.ruff_exclude,
+            project.ruff_exclude,
         )
 
     return failed
