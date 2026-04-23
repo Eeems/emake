@@ -37,7 +37,7 @@ jobs:
           emake lint
 
   test:
-    name: Test with python ${{ matrix.python }}
+    name: Test with python ${{{{ matrix.python }}}}
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -121,12 +121,12 @@ jobs:
         run: |
           set -e
           pip install emake
-          emake build --native-wheel --arch ${{ matrix.arch }} --libc ${{ matrix.libc }} --python ${{ matrix.python }}
+          emake build --native-wheel --arch ${{{{ matrix.arch }}}} --libc ${{{{ matrix.libc }}}} --python ${{{{ matrix.python }}}}
       - name: Testing wheel
-        run: emake test --wheel --arch ${{ matrix.arch }} --libc ${{ matrix.libc }} --python ${{ matrix.python }}
+        run: emake test --wheel --arch ${{{{ matrix.arch }}}} --libc ${{{{ matrix.libc }}}} --python ${{{{ matrix.python }}}}
       - uses: actions/upload-artifact@v6
         with:
-          name: pip-wheel-${{ matrix.python }}-${{ matrix.arch }}-${{ matrix.libc }}
+          name: pip-wheel-${{{{ matrix.python }}}}-${{{{ matrix.arch }}}}-${{{{ matrix.libc }}}}
           path: dist/*
           if-no-files-found: error
 
