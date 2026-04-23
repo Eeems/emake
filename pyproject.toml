@@ -24,7 +24,7 @@ keywords = [
     "automation",
     "development",
 ]
-dependencies = []
+dependencies = ['packaging']
 
 [project.scripts]
 emake = "emake.cli:main"

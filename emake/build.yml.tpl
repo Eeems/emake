@@ -7,7 +7,8 @@ on:
   pull_request:
   workflow_dispatch:
   release:
-    types: [ released ]
+    types:
+      - released
 
 permissions: read-all
 
@@ -32,8 +33,8 @@ jobs:
       - name: Run lint
         run: |
           set -e
-          pip install wheel packaging
-          make lint
+          pip install emake
+          emake lint
 
   test:
     name: Test with python ${{ matrix.python }}
@@ -51,27 +52,25 @@ jobs:
       - name: Run tests
         run: |
           set -e
-          pip install wheel packaging
-          make test
+          pip install emake
+          emake test
 
   build-sdist:
     name: Build sdist
-    needs: [ lint, test ]
+    needs: &build-needs
+      - lint
+      - test
     runs-on: ubuntu-latest
     steps:
       - name: Checkout the Git repository
         uses: actions/checkout@v6
-      - uses: actions/setup-python@v6
-        with:
-          python-version: "3.11"
-          cache: pip
       - name: Install build tool
         run: pip install build
       - name: Building sdist
         run: |
           set -e
-          pip install wheel packaging
-          make sdist
+          pip install emake
+          emake build --sdist
       - uses: actions/upload-artifact@v6
         with:
           name: pip-sdist
@@ -80,29 +79,64 @@ jobs:
 
   build-any-wheel:
     name: Build wheel
-    needs: [ lint, test ]
+    needs: *build-needs
     runs-on: ubuntu-latest
     steps:
       - name: Checkout the Git repository
         uses: actions/checkout@v6
-      - uses: actions/setup-python@v6
-        with:
-          python-version: "3.11"
-          cache: pip
-      - name: Install build tool
-        run: pip install build
-      - name: Building package
-        run: make wheel
+      - name: Building wheel
+        run: |
+          set -e
+          pip install emake
+          emake build --wheel
       - uses: actions/upload-artifact@v6
         with:
           name: pip-wheel-none-any
           path: dist/*
           if-no-files-found: error
 
+  build-wheel:
+    name: Build wheel
+    needs: *build-needs
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python: *python-versions
+        arch:
+          - x86_64
+          - i686
+          - ppc64le
+          - aarch64
+          - armv7l
+          - riscv64
+          - s390x
+        libc:
+          - glibc
+          - musl
+    steps:
+      - name: Checkout the Git repository
+        uses: actions/checkout@v6
+      - name: Building wheel
+        run: |
+          set -e
+          pip install emake
+          emake build --native-wheel --arch ${{ matrix.arch }} --libc ${{ matrix.libc }} --python ${{ matrix.python }}
+      - name: Testing wheel
+        run: emake test --wheel --arch ${{ matrix.arch }} --libc ${{ matrix.libc }} --python ${{ matrix.python }}
+      - uses: actions/upload-artifact@v6
+        with:
+          name: pip-wheel-${{ matrix.python }}-${{ matrix.arch }}-${{ matrix.libc }}
+          path: dist/*
+          if-no-files-found: error
+
   publish:
     name: Publish to PyPi
     if: github.event_name == 'release' && startsWith(github.ref, 'refs/tags')
-    needs: [ build-sdist, build-any-wheel ]
+    needs: &release-needs
+      - build-sdist
+      - build-any-wheel
+      - build-wheel
     runs-on: ubuntu-latest
     permissions:
       id-token: write
@@ -127,7 +161,7 @@ jobs:
   release:
     name: Add release artifacts
     if: github.event_name == 'release' && startsWith(github.ref, 'refs/tags')
-    needs: publish
+    needs: *release-needs
     runs-on: ubuntu-latest
     permissions:
       contents: write

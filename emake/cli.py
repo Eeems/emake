@@ -256,7 +256,7 @@ def main(argv: list[str] | None = None) -> int:
     _ = subparser.add_argument(
         "--wheel",
         action="store_true",
-        help="Build wheel",
+        help="Build a pure python wheel",
     )
     _ = subparser.add_argument(
         "--native-wheel",
