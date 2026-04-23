@@ -80,15 +80,18 @@ def build_manylinux_wheel(
     # Create build script
     script = f"""
 set -e
-manylinux-interpreters ensure "{python_interpreter}";
-PATH="/opt/python/{python_interpreter}/bin:$PATH";
-cd /src;
+manylinux-interpreters ensure "{python_interpreter}"
+PATH="/opt/python/{python_interpreter}/bin:$PATH"
+cd /src
 rm -rf build/
-python -m pip install --upgrade build;
-python -m build --wheel {" ".join(flags)};
-auditwheel repair dist/*_{arch}.whl;
+python -m pip install --upgrade build
+python -m build --wheel {" ".join(flags)}
+{f"auditwheel repair dist/*_{arch}.whl" if native else ""}
 owner=$(stat -c '%u:%g' .)
-chown -R "$owner" dist/ *.egg-info/ build/ wheelhouse/
+chown -R "$owner" dist/ *.egg-info/ build/
+{f"rm -f dist/*_{arch}.whl" if native else ""}
+{"mv wheelhouse/* dist/" if native else ""}
+rm -rf wheelhouse/
 """
 
     # Run Docker container
