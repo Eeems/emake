@@ -112,10 +112,10 @@ class VirtualEnvironment:
 
         if chronic and proc.returncode:
             if proc.stdout:
-                print(proc.stdout)
+                print(stdout)
 
             if proc.stderr:
-                print(proc.stderr, file=sys.stderr)
+                print(stderr, file=sys.stderr)
 
             raise subprocess.CalledProcessError(proc.returncode, args, stdout, stderr)
 
@@ -175,7 +175,7 @@ class VirtualEnvironment:
             chronic=True,
         )
 
-    def ensure_lint_tools(self) -> None:
+    def ensure_lint_tools(self, extras: list[str]) -> None:
         """Ensure linting tools are installed in the venv."""
         _ = self._spinner(
             "Installing lint tools",
@@ -186,6 +186,7 @@ class VirtualEnvironment:
             "basedpyright",
             "dodgy",
             "pyroma",
+            *(["-e", f".[{','.join(extras)}]"] if extras else []),
             chronic=True,
         )
 

@@ -62,7 +62,7 @@ def run_lint(venv: VirtualEnvironment, config: ProjectConfig, fix: bool = False)
     Returns:
         Exit code - number of tools that failed.
     """
-    venv.ensure_lint_tools()
+    venv.ensure_lint_tools(list((config.extras or {}).keys()))
     extras = config.extras if config.extras is not None else {}
     venv.install(*[x for x in extras if x in ("test", "dev", "lint")])
     tools = [
