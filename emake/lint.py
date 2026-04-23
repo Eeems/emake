@@ -35,7 +35,11 @@ def run_lint_async(
         path = env.get("PYTHONPATH", "").split(os.pathsep)
         env["PYTHONPATH"] = os.pathsep.join([MODULE_PATH] + path)
         proc = subprocess.run(
-            [sys.executable, "-um", tool, *args],
+            [
+                *([] if "__compiled__" in globals() else [sys.executable, "-um"]),
+                tool,
+                *args,
+            ],
             check=False,
             capture_output=True,
             text=True,
