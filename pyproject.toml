@@ -1,6 +1,6 @@
 [project]
 name = "emake"
-version = "0.0.2"
+version = "0.0.3"
 description = "A Python module to replace Makefile workflows"
 requires-python = ">=3.11"
 license = "MIT"

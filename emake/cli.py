@@ -121,6 +121,7 @@ def cmd_test(args: argparse.Namespace, _parser: argparse.ArgumentParser) -> int:
             arch=args.arch,  # pyright: ignore[reportAny]
             libc=args.libc,  # pyright: ignore[reportAny]
             python=args.python,  # pyright: ignore[reportAny]
+            setup=args.setup,  # pyright: ignore[reportAny]
         )
         return 0
 
@@ -142,6 +143,7 @@ def cmd_build(args: argparse.Namespace, _parser: argparse.ArgumentParser) -> int
             arch=args.arch,  # pyright: ignore[reportAny]
             libc=args.libc,  # pyright: ignore[reportAny]
             python=args.python,  # pyright: ignore[reportAny]
+            setup=args.setup,  # pyright: ignore[reportAny]
         )
 
     if args.native_wheel:  # pyright: ignore[reportAny]
@@ -150,6 +152,7 @@ def cmd_build(args: argparse.Namespace, _parser: argparse.ArgumentParser) -> int
             arch=args.arch,  # pyright: ignore[reportAny]
             libc=args.libc,  # pyright: ignore[reportAny]
             python=args.python,  # pyright: ignore[reportAny]
+            setup=args.setup,  # pyright: ignore[reportAny]
         )
 
     return 0
@@ -237,6 +240,11 @@ def main(argv: list[str] | None = None) -> int:
         help="Python version for wheel testing (default: 3.11)",
     )
     _ = subparser.add_argument(
+        "--setup",
+        default=None,
+        help="Script to run before installing the wheel and running the tests. Only relevant when --wheel is specified",
+    )
+    _ = subparser.add_argument(
         "path",
         nargs="?",
         default="tests/",
@@ -278,6 +286,11 @@ def main(argv: list[str] | None = None) -> int:
         "--python",
         default="3.11",
         help="Python version for manylinux build (default: 3.11)",
+    )
+    _ = subparser.add_argument(
+        "--setup",
+        default=None,
+        help="Script to run before starting the build.",
     )
 
     _ = subparsers.add_parser(

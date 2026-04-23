@@ -57,6 +57,7 @@ def build_manylinux_wheel(
     arch: str,
     libc: str,
     python: str,
+    setup: str | None,
 ) -> None:
     """Build a manylinux wheel using Docker.
 
@@ -83,6 +84,7 @@ set -e
 manylinux-interpreters ensure "{python_interpreter}"
 PATH="/opt/python/{python_interpreter}/bin:$PATH"
 cd /src
+{setup or ""}
 rm -rf build/
 python -m pip install --upgrade build
 python -m build --wheel {" ".join(flags)}
@@ -131,10 +133,11 @@ rm -rf wheelhouse/
 
 
 def test_manylinux_wheel(
-    wheel_path: Path | None = None,
-    arch: str | None = None,
-    libc: str | None = None,
-    python: str | None = None,
+    wheel_path: Path | None,
+    arch: str | None,
+    libc: str | None,
+    python: str | None,
+    setup: str | None,
 ) -> None:
     """Test a built manylinux wheel.
 
@@ -168,15 +171,16 @@ def test_manylinux_wheel(
     # Create test script
     script = f"""
 set -e
-cd /src;
-pip install --root-user-action=ignore "{wheel_path}"[test];
-git config --global user.email 'root@localhost';
-git config --global user.name "Test Runner";
-git config --global init.defaultBranch trunk;
+cd /src
+{setup or ""}
+pip install --root-user-action=ignore "{wheel_path}"[test]
+git config --global user.email 'root@localhost'
+git config --global user.name "Test Runner"
+git config --global init.defaultBranch trunk
 mkdir -p /tmp/test
 cd /tmp/test;
 cp -r /src/tests .
-python -m pytest -vv tests;
+python -m pytest -vv tests
 """
 
     # Select image based on libc
