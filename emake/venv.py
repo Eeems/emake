@@ -3,7 +3,6 @@
 import os
 import subprocess
 import sys
-from pathlib import Path
 
 SPINNER_FRAMES = ["⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"]
 
@@ -11,15 +10,15 @@ SPINNER_FRAMES = ["⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇",
 class VirtualEnvironment:
     """Manages a virtual environment."""
 
-    def __init__(self, path: Path) -> None:
+    def __init__(self, path: str) -> None:
         """Initialize virtual environment manager.
 
         Args:
             path: Path to virtual environment. Defaults to .venv in cwd.
         """
-        self.path: Path = path.resolve()
-        self.python: Path = self.path / "bin" / "python"
-        self.pip: Path = self.path / "bin" / "pip"
+        self.path: str = os.path.realpath(os.path.abspath(path))
+        self.python: str = os.path.join(self.path, "bin", "python")
+        self.pip: str = os.path.join(self.path, "bin", "pip")
         self.ensure()
         self.ensure_pip()
 
@@ -27,14 +26,14 @@ class VirtualEnvironment:
     def exists(self) -> bool:
         """Check if virtual environment exists."""
         return (
-            self.path.exists(follow_symlinks=True)
-            and self.python.exists(follow_symlinks=True)
-            and self.pip.exists(follow_symlinks=True)
+            os.path.exists(self.path)
+            and os.path.exists(self.python)
+            and os.path.exists(self.pip)
         )
 
     def _chronic(
         self,
-        *args: Path | str,
+        *args: str,
         env: dict[str, str] | None = None,
         check: bool = True,
     ) -> subprocess.CompletedProcess[str]:
@@ -65,7 +64,7 @@ class VirtualEnvironment:
     def _spinner(
         self,
         action: str,
-        *args: Path | str,
+        *args: str,
         chronic: bool = False,
     ) -> subprocess.CompletedProcess[str]:
         if not sys.stdout.isatty():
@@ -241,7 +240,7 @@ class VirtualEnvironment:
         )
 
 
-def get_venv(path: Path | None = None) -> VirtualEnvironment:
+def get_venv() -> VirtualEnvironment:
     """Get a VirtualEnvironment instance.
 
     Args:
@@ -250,4 +249,4 @@ def get_venv(path: Path | None = None) -> VirtualEnvironment:
     Returns:
         VirtualEnvironment instance.
     """
-    return VirtualEnvironment(path or Path(".venv"))
+    return VirtualEnvironment(".venv")
