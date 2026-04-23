@@ -30,11 +30,11 @@ jobs:
         with:
           python-version: ${{{{ matrix.python }}}}
           cache: pip
+      - &install-emake
+        name: Install emake
+        run: pip install emake
       - name: Run lint
-        run: |
-          set -e
-          pip install emake
-          emake lint
+        run: emake lint
 
   test:
     name: Test with python ${{{{ matrix.python }}}}
@@ -49,11 +49,9 @@ jobs:
         with:
           python-version: ${{{{ matrix.python }}}}
           cache: pip
+      - *install-emake
       - name: Run tests
-        run: |
-          set -e
-          pip install emake
-          emake test
+        run: emake test
 
   build-sdist:
     name: Build sdist
@@ -64,13 +62,9 @@ jobs:
     steps:
       - name: Checkout the Git repository
         uses: actions/checkout@v6
-      - name: Install build tool
-        run: pip install build
+      - *install-emake
       - name: Building sdist
-        run: |
-          set -e
-          pip install emake
-          emake build --sdist
+        run: emake build --sdist
       - uses: actions/upload-artifact@v6
         with:
           name: pip-sdist
@@ -84,11 +78,11 @@ jobs:
     steps:
       - name: Checkout the Git repository
         uses: actions/checkout@v6
+      - *install-emake
       - name: Building wheel
-        run: |
-          set -e
-          pip install emake
-          emake build --wheel
+        run: emake build --wheel
+      - name: Test wheel
+        run: emake test --wheel
       - uses: actions/upload-artifact@v6
         with:
           name: pip-wheel-none-any
@@ -117,13 +111,21 @@ jobs:
     steps:
       - name: Checkout the Git repository
         uses: actions/checkout@v6
+      - *install-emake
       - name: Building wheel
         run: |
-          set -e
-          pip install emake
-          emake build --native-wheel --arch ${{{{ matrix.arch }}}} --libc ${{{{ matrix.libc }}}} --python ${{{{ matrix.python }}}}
+          emake build \
+            --native-wheel \
+            --arch ${{{{ matrix.arch }}}} \
+            --libc ${{{{ matrix.libc }}}} \
+            --python ${{{{ matrix.python }}}}
       - name: Testing wheel
-        run: emake test --wheel --arch ${{{{ matrix.arch }}}} --libc ${{{{ matrix.libc }}}} --python ${{{{ matrix.python }}}}
+        run: |
+          emake test \
+            --wheel \
+            --arch ${{{{ matrix.arch }}}} \
+            --libc ${{{{ matrix.libc }}}} \
+            --python ${{{{ matrix.python }}}}
       - uses: actions/upload-artifact@v6
         with:
           name: pip-wheel-${{{{ matrix.python }}}}-${{{{ matrix.arch }}}}-${{{{ matrix.libc }}}}
