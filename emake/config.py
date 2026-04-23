@@ -53,7 +53,7 @@ class ProjectConfig:
     @property
     def name(self) -> str | None:
         """Package name from [project].name."""
-        project: dict[str, str | None] | None = self._data["project"]  # pyright: ignore[reportAny]
+        project: dict[str, str | None] | None = self._data.get("project")
         if project is None:
             return None
 
@@ -62,7 +62,7 @@ class ProjectConfig:
     @property
     def description(self) -> str | None:
         """Package description from [project].description."""
-        project: dict[str, str | None] | None = self._data["project"]  # pyright: ignore[reportAny]
+        project: dict[str, str | None] | None = self._data.get("project")
         if project is None:
             return None
 
@@ -71,7 +71,7 @@ class ProjectConfig:
     @property
     def license(self) -> str | None:
         """Package license from [project].license."""
-        project: dict[str, str | None] | None = self._data["project"]  # pyright: ignore[reportAny]
+        project: dict[str, str | None] | None = self._data.get("project")
         if project is None:
             return None
 
@@ -99,16 +99,22 @@ class ProjectConfig:
         return res
 
     @property
-    def version(self) -> str:
+    def version(self) -> str | None:
         """Package version from [project].version."""
-        project: dict[str, object] = self._data["project"]  # pyright: ignore[reportAny]
+        project: dict[str, object] | None = self._data.get("project")
+        if project is None:
+            return None
+
         version_val = project["version"]
         assert isinstance(version_val, str), version_val
         return version_val
 
     @property
     def emake(self) -> dict[str, list[str]]:
-        tool: dict[str, object] = self._data["tool"]  # pyright: ignore[reportAny]
+        tool: dict[str, object] | None = self._data.get("tool")
+        if tool is None:
+            return {}
+
         value = tool.get("emake")
         if value is None:
             return {}
@@ -119,63 +125,61 @@ class ProjectConfig:
     @property
     def extras(self) -> dict[str, list[str]] | None:
         """Dict of optional dependencies from [project.optional-dependencies]."""
-        project: dict[str, object] = self._data["project"]  # pyright: ignore[reportAny]
-        extras_val = project.get("optional-dependencies")
-        if extras_val is None:
+        project: dict[str, dict[str, list[str]]] | None = self._data.get("project")
+        if project is None:
             return None
 
-        assert isinstance(extras_val, dict), extras_val
-        return cast(dict[str, list[str]], extras_val)
+        return project.get("optional-dependencies")
 
     @property
     def build_system_requires(self) -> list[str]:
         """Build system requires from [build-system].requires."""
-        build_system: dict[str, object] = self._data["build-system"]  # pyright: ignore[reportAny]
-        requires_val = build_system["requires"]
-        assert isinstance(requires_val, list), requires_val
-        return cast(list[str], requires_val)
+        build_system: dict[str, list[str] | None] | None = self._data.get(
+            "build-system"
+        )
+        if build_system is None:
+            return []
+
+        return build_system.get("requires") or []
 
     @property
-    def build_backend(self) -> str:
+    def build_backend(self) -> str | None:
         """Build backend from [build-system].build-backend."""
-        build_system: dict[str, object] = self._data["build-system"]  # pyright: ignore[reportAny]
-        backend_val = build_system["build-backend"]
-        assert isinstance(backend_val, str), backend_val
-        return backend_val
+        build_system: dict[str, str | None] | None = self._data.get("build-system")
+        if build_system is None:
+            return None
+
+        return build_system.get("build-backend")
 
     @property
     def pyright_exclude(self) -> list[str] | None:
         """Pyright exclude from [tool.pyright].exclude."""
-        tool: dict[str, object] = self._data["tool"]  # pyright: ignore[reportAny]
+        tool: dict[str, object] | None = self._data.get("tool")
+        if tool is None:
+            return None
+
         pyright_val = tool.get("pyright")
         if pyright_val is None:
             return None
 
         assert isinstance(pyright_val, dict), pyright_val
-        pyright_dict = cast(dict[str, object], pyright_val)
-        exclude_val = pyright_dict.get("exclude")
-        if exclude_val is None:
-            return None
-
-        assert isinstance(exclude_val, list), exclude_val
-        return cast(list[str], exclude_val)
+        pyright_dict = cast(dict[str, list[str] | None], pyright_val)
+        return pyright_dict.get("exclude")
 
     @property
     def ruff_exclude(self) -> list[str] | None:
         """Ruff exclude from [tool.ruff].exclude."""
-        tool: dict[str, object] = self._data["tool"]  # pyright: ignore[reportAny]
+        tool: dict[str, object] | None = self._data.get("tool")
+        if tool is None:
+            return None
+
         ruff_val = tool.get("ruff")
         if ruff_val is None:
             return None
 
         assert isinstance(ruff_val, dict), ruff_val
-        ruff_dict = cast(dict[str, object], ruff_val)
-        exclude_val = ruff_dict.get("exclude")
-        if exclude_val is None:
-            return None
-
-        assert isinstance(exclude_val, list), exclude_val
-        return cast(list[str], exclude_val)
+        ruff_dict = cast(dict[str, list[str] | None], ruff_val)
+        return ruff_dict.get("exclude")
 
     @property
     def requires_python(self) -> str | None:
@@ -186,12 +190,7 @@ class ProjectConfig:
 
         assert isinstance(project, dict), project
         project = cast(dict[str, str], project)
-        requires_python = project.get("requires-python", None)
-        if requires_python is None:
-            return None
-
-        assert isinstance(requires_python, str), requires_python
-        return requires_python
+        return project.get("requires-python", None)
 
 
 def _get_min_version(spec: SpecifierSet) -> str | None:
