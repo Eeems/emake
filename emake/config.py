@@ -411,10 +411,7 @@ def diff() -> int:
             print("======================================", file=sys.stderr)
             return failed
 
-        if project.requires_python is None:
-            error("'pyproject.toml' does not specify a 'requires-python' value.")
-
-        else:
+        if project.requires_python is not None:
             if project.extras is None or "test" not in project.extras:
                 error("'test' optional dependency group is missing.")
 

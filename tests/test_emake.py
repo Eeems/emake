@@ -910,3 +910,66 @@ def test_diff_no_pyproject(tmp_path: Path) -> None:
         print(stdout_text)
         stderr_text = stderr.getvalue()
         print(stderr_text, file=sys.stderr)
+
+
+def test_diff_no_requires_python(tmp_path: Path) -> None:
+    """Test when requires-python is missing."""
+    config_text = """
+[project]
+name = "test"
+license = "MIT"
+authors = [{name = "test", email = "test@localhost"}]
+
+[build-system]
+requires = ["setuptools>=70.1", "nuitka>=4.0.6"]
+build-backend = "nuitka.distutils.Build"
+
+[project.optional-dependencies]
+test = ["pytest"]
+
+[tool.pyright]
+exclude = [".venv", "build"]
+
+[tool.ruff]
+exclude = [".venv", "build"]
+"""
+    os.chdir(tmp_path)
+    with open("pyproject.toml", "w") as f:
+        _ = f.write(config_text)
+
+    stdout = StringIO()
+    stderr = StringIO()
+    with redirect_stdout(stdout), redirect_stderr(stderr):
+        result = diff()
+
+    stdout_text = stdout.getvalue()
+    print(stdout_text)
+    stderr_text = stderr.getvalue()
+    print(stderr_text, file=sys.stderr)
+    assert result == 1
+    assert "does not specify a 'requires_python'" in stderr_text
+
+
+def test_diff_multiple_missing(tmp_path: Path) -> None:
+    """Test when multiple required fields are missing."""
+    config_text = """
+[project]
+name = "test"
+"""
+    os.chdir(tmp_path)
+    with open("pyproject.toml", "w") as f:
+        _ = f.write(config_text)
+
+    stdout = StringIO()
+    stderr = StringIO()
+    with redirect_stdout(stdout), redirect_stderr(stderr):
+        result = diff()
+
+    stdout_text = stdout.getvalue()
+    print(stdout_text)
+    stderr_text = stderr.getvalue()
+    print(stderr_text, file=sys.stderr)
+    assert result >= 3
+    assert "does not specify a 'license'" in stderr_text
+    assert "does not specify a 'requires_python'" in stderr_text
+    assert "does not specify a 'authors'" in stderr_text
