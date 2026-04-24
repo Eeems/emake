@@ -47,7 +47,7 @@ exclude = [".venv", "build"]
     stdout = StringIO()
     stderr = StringIO()
     with redirect_stdout(stdout), redirect_stderr(stderr):
-        result = diff()
+        result = diff(False, False)
 
     stdout_text = stdout.getvalue()
     print(stdout_text)
@@ -86,7 +86,7 @@ exclude = [".venv", "build"]
     stdout = StringIO()
     stderr = StringIO()
     with redirect_stdout(stdout), redirect_stderr(stderr):
-        result = diff()
+        result = diff(False, False)
 
     stdout_text = stdout.getvalue()
     print(stdout_text)
@@ -125,7 +125,7 @@ exclude = [".venv", "build"]
     stdout = StringIO()
     stderr = StringIO()
     with redirect_stdout(stdout), redirect_stderr(stderr):
-        result = diff()
+        result = diff(False, False)
 
     stdout_text = stdout.getvalue()
     print(stdout_text)
@@ -164,7 +164,7 @@ exclude = [".venv", "build"]
     stdout = StringIO()
     stderr = StringIO()
     with redirect_stdout(stdout), redirect_stderr(stderr):
-        result = diff()
+        result = diff(False, False)
 
     stdout_text = stdout.getvalue()
     print(stdout_text)
@@ -204,7 +204,7 @@ exclude = [".venv", "build"]
     stdout = StringIO()
     stderr = StringIO()
     with redirect_stdout(stdout), redirect_stderr(stderr):
-        result = diff()
+        result = diff(False, False)
 
     stdout_text = stdout.getvalue()
     print(stdout_text)
@@ -243,7 +243,7 @@ exclude = [".venv", "build"]
     stdout = StringIO()
     stderr = StringIO()
     with redirect_stdout(stdout), redirect_stderr(stderr):
-        result = diff()
+        result = diff(False, False)
 
     stdout_text = stdout.getvalue()
     print(stdout_text)
@@ -282,7 +282,7 @@ exclude = [".venv", "build"]
     stdout = StringIO()
     stderr = StringIO()
     with redirect_stdout(stdout), redirect_stderr(stderr):
-        result = diff()
+        result = diff(False, False)
 
     stdout_text = stdout.getvalue()
     print(stdout_text)
@@ -321,7 +321,7 @@ exclude = [".venv", "build"]
     stdout = StringIO()
     stderr = StringIO()
     with redirect_stdout(stdout), redirect_stderr(stderr):
-        result = diff()
+        result = diff(False, False)
 
     stdout_text = stdout.getvalue()
     print(stdout_text)
@@ -359,7 +359,7 @@ exclude = [".venv", "build"]
     stdout = StringIO()
     stderr = StringIO()
     with redirect_stdout(stdout), redirect_stderr(stderr):
-        result = diff()
+        result = diff(False, False)
 
     stdout_text = stdout.getvalue()
     print(stdout_text)
@@ -397,7 +397,7 @@ exclude = [".venv", "build"]
     stdout = StringIO()
     stderr = StringIO()
     with redirect_stdout(stdout), redirect_stderr(stderr):
-        result = diff()
+        result = diff(False, False)
 
     stdout_text = stdout.getvalue()
     print(stdout_text)
@@ -435,7 +435,7 @@ exclude = [".venv", "build"]
     stdout = StringIO()
     stderr = StringIO()
     with redirect_stdout(stdout), redirect_stderr(stderr):
-        result = diff()
+        result = diff(False, False)
 
     stdout_text = stdout.getvalue()
     print(stdout_text)
@@ -474,7 +474,7 @@ exclude = [".venv", "build"]
     stdout = StringIO()
     stderr = StringIO()
     with redirect_stdout(stdout), redirect_stderr(stderr):
-        result = diff()
+        result = diff(False, False)
 
     stdout_text = stdout.getvalue()
     print(stdout_text)
@@ -497,7 +497,7 @@ name = "test"
     stdout = StringIO()
     stderr = StringIO()
     with redirect_stdout(stdout), redirect_stderr(stderr):
-        result = diff()
+        result = diff(False, False)
 
     stdout_text = stdout.getvalue()
     print(stdout_text)
@@ -532,7 +532,7 @@ exclude = [".venv", "build"]
     stdout = StringIO()
     stderr = StringIO()
     with redirect_stdout(stdout), redirect_stderr(stderr):
-        result = diff()
+        result = diff(False, False)
 
     stdout_text = stdout.getvalue()
     print(stdout_text)
@@ -572,7 +572,7 @@ exclude = [".venv", "build"]
     stdout = StringIO()
     stderr = StringIO()
     with redirect_stdout(stdout), redirect_stderr(stderr):
-        result = diff()
+        result = diff(False, False)
 
     stdout_text = stdout.getvalue()
     print(stdout_text)
@@ -609,7 +609,7 @@ exclude = [".venv", "build"]
     stdout = StringIO()
     stderr = StringIO()
     with redirect_stdout(stdout), redirect_stderr(stderr):
-        result = diff()
+        result = diff(False, False)
 
     stdout_text = stdout.getvalue()
     print(stdout_text)
@@ -646,7 +646,7 @@ exclude = [".venv", "build"]
     stdout = StringIO()
     stderr = StringIO()
     with redirect_stdout(stdout), redirect_stderr(stderr):
-        result = diff()
+        result = diff(False, False)
 
     stdout_text = stdout.getvalue()
     print(stdout_text)
@@ -686,7 +686,7 @@ exclude = [".venv", "build"]
     stdout = StringIO()
     stderr = StringIO()
     with redirect_stdout(stdout), redirect_stderr(stderr):
-        result = diff()
+        result = diff(False, False)
 
     stdout_text = stdout.getvalue()
     print(stdout_text)
@@ -725,7 +725,7 @@ exclude = [".cache", "dist"]
     stdout = StringIO()
     stderr = StringIO()
     with redirect_stdout(stdout), redirect_stderr(stderr):
-        result = diff()
+        result = diff(False, False)
 
     stdout_text = stdout.getvalue()
     print(stdout_text)
@@ -764,7 +764,7 @@ exclude = [".venv", "build"]
     stdout = StringIO()
     stderr = StringIO()
     with redirect_stdout(stdout), redirect_stderr(stderr):
-        result = diff()
+        result = diff(False, False)
 
     stdout_text = stdout.getvalue()
     print(stdout_text)
@@ -804,7 +804,7 @@ exclude = [".venv", "build"]
     stdout = StringIO()
     stderr = StringIO()
     with redirect_stdout(stdout), redirect_stderr(stderr):
-        result = diff()
+        result = diff(False, False)
 
     stdout_text = stdout.getvalue()
     print(stdout_text)
@@ -843,7 +843,7 @@ exclude = [".venv", "build"]
     stdout = StringIO()
     stderr = StringIO()
     with redirect_stdout(stdout), redirect_stderr(stderr):
-        result = diff()
+        result = diff(False, False)
 
     stdout_text = stdout.getvalue()
     print(stdout_text)
@@ -882,7 +882,7 @@ exclude = [".venv", "build"]
     stdout = StringIO()
     stderr = StringIO()
     with redirect_stdout(stdout), redirect_stderr(stderr):
-        result = diff()
+        result = diff(False, False)
 
     stdout_text = stdout.getvalue()
     print(stdout_text)
@@ -900,7 +900,7 @@ def test_diff_no_pyproject(tmp_path: Path) -> None:
     stderr = StringIO()
     with redirect_stdout(stdout), redirect_stderr(stderr):
         try:
-            _ = diff()
+            _ = diff(False, False)
             assert False, "Should raise FileNotFoundError"
 
         except FileNotFoundError:
@@ -940,7 +940,7 @@ exclude = [".venv", "build"]
     stdout = StringIO()
     stderr = StringIO()
     with redirect_stdout(stdout), redirect_stderr(stderr):
-        result = diff()
+        result = diff(False, False)
 
     stdout_text = stdout.getvalue()
     print(stdout_text)
@@ -963,7 +963,7 @@ name = "test"
     stdout = StringIO()
     stderr = StringIO()
     with redirect_stdout(stdout), redirect_stderr(stderr):
-        result = diff()
+        result = diff(False, False)
 
     stdout_text = stdout.getvalue()
     print(stdout_text)
