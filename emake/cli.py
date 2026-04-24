@@ -166,12 +166,17 @@ def cmd_clean(_args: argparse.Namespace, _parser: argparse.ArgumentParser) -> in
 
 def cmd_lint(args: argparse.Namespace, _parser: argparse.ArgumentParser) -> int:
     """Handle the lint command."""
-    return run_lint(get_venv(), ProjectConfig(), fix=args.fix)  # pyright: ignore[reportAny]
+    assert isinstance(args.fix, bool)  # pyright: ignore[reportAny]
+    assert isinstance(args.workflow, bool)  # pyright: ignore[reportAny]
+    assert isinstance(args.colour, bool)  # pyright: ignore[reportAny]
+    return run_lint(get_venv(), ProjectConfig(), args.fix, args.workflow, args.colour)
 
 
-def cmd_config_diff(_args: argparse.Namespace, _parser: argparse.ArgumentParser) -> int:
+def cmd_config_diff(args: argparse.Namespace, _parser: argparse.ArgumentParser) -> int:
     """Handle the config-diff command."""
-    return diff()
+    assert isinstance(args.workflow, bool)  # pyright: ignore[reportAny]
+    assert isinstance(args.colour, bool)  # pyright: ignore[reportAny]
+    return diff(args.workflow, args.colour)
 
 
 def cmd_status(_args: argparse.Namespace, _parser: argparse.ArgumentParser) -> int:
@@ -307,15 +312,37 @@ def main(argv: list[str] | None = None) -> int:
         action="store_true",
         help="Automatically fix issues where supported",
     )
+    _ = subparser.add_argument(
+        "--workflow",
+        help="Do a comparison of the workflow and outut the diff",
+        action="store_true",
+    )
+    _ = subparser.add_argument(
+        "--colour",
+        "--color",
+        help="Force colour output even when not on a tty",
+        action="store_true",
+    )
 
     _ = subparsers.add_parser(
         "status",
         help="Output status information",
     )
 
-    _ = subparsers.add_parser(
+    subparser = subparsers.add_parser(
         "config-diff",
         help="Compare project's pyproject.toml against template",
+    )
+    _ = subparser.add_argument(
+        "--workflow",
+        help="Do a comparison of the workflow and outut the diff",
+        action="store_true",
+    )
+    _ = subparser.add_argument(
+        "--colour",
+        "--color",
+        help="Force colour output even when not on a tty",
+        action="store_true",
     )
 
     subparser = subparsers.add_parser(

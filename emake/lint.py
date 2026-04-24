@@ -52,7 +52,13 @@ def run_lint_async(
     return proc.returncode, proc.stdout, proc.stderr
 
 
-def run_lint(venv: VirtualEnvironment, config: ProjectConfig, fix: bool = False) -> int:
+def run_lint(
+    venv: VirtualEnvironment,
+    config: ProjectConfig,
+    fix: bool,
+    workflow: bool,
+    colour: bool,
+) -> int:
     """Run linting tools concurrently.
 
     Args:
@@ -70,7 +76,12 @@ def run_lint(venv: VirtualEnvironment, config: ProjectConfig, fix: bool = False)
         ("basedpyright", "--project=pyproject.toml"),
         ("dodgy", "--zero-exit"),
         ("pyroma", "."),
-        ("emake", "config-diff"),
+        (
+            "emake",
+            "config-diff",
+            *(["--workflow"] if workflow else []),
+            *(["--colour"] if colour else []),
+        ),
     ]
 
     failed = 0

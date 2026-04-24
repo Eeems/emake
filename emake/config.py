@@ -1,5 +1,7 @@
 """Parse pyproject.toml for project configuration."""
 
+import difflib
+import os
 import sys
 from collections import defaultdict
 from collections.abc import Mapping
@@ -348,7 +350,7 @@ def requirements_not_satisfied_by(
     return not_covered
 
 
-def diff() -> int:
+def diff(workflow: bool, colour: bool) -> int:
     """Compare project's pyproject.toml against template.
 
     Returns:
@@ -359,7 +361,13 @@ def diff() -> int:
 
     def error(msg: str) -> None:
         nonlocal failed
+        if colour or sys.stderr.isatty():
+            print("\x1b[31m", end="", file=sys.stderr)
+
         print(f"ERROR: {msg}", file=sys.stderr)
+        if colour or sys.stderr.isatty():
+            print("\x1b[00m", end="", file=sys.stderr)
+
         failed += 1
 
     def diff_list(
@@ -445,5 +453,37 @@ def diff() -> int:
             template_config.ruff_exclude,
             project.ruff_exclude,
         )
+
+    if not workflow:
+        return failed
+
+    if not os.path.exists(".github/workflows/build.yml"):
+        error(".github/workflows/build.yml is missing")
+        return failed
+
+    template = resources.files("emake").joinpath("build.yml.tpl").read_text()
+    with open(".github/workflows/build.yml") as f:
+        diffs = difflib.unified_diff(
+            f.read().splitlines(keepends=False),
+            template.format(project_name=project.name or "x").splitlines(
+                keepends=False
+            ),
+            fromfile=".github/workflows/build.yml",
+            tofile=".github/workflows/build.yml.tpl",
+        )
+    for line in diffs:
+        if colour or sys.stderr.isatty():
+            if line.startswith("-"):
+                print("\x1b[31m", end="", file=sys.stderr)
+
+            elif line.startswith("+"):
+                print("\x1b[32m", end="", file=sys.stderr)
+
+        print(line, file=sys.stderr)
+        if colour or sys.stderr.isatty():
+            print("\x1b[00m", end="", file=sys.stderr)
+
+    if diffs:
+        failed += 1
 
     return failed

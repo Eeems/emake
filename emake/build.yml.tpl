@@ -110,7 +110,7 @@ jobs:
           - musl
         exclude:
           - arch: i686 # segfaults currently
-            python: 3.14
+            python: "3.14"
             libc: glibc
     steps:
       - name: Checkout the Git repository
