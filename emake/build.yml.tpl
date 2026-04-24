@@ -146,7 +146,6 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       id-token: write
-      contents: write
     environment:
       name: pypi
       url: https://pypi.org/p/{project_name}
