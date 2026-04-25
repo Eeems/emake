@@ -28,7 +28,7 @@ requires-python = ">=3.11"
 authors = [{name = "test", email = "test@localhost"}]
 
 [build-system]
-requires = ["setuptools>=70.1", "nuitka>=4.0.6"]
+requires = ["setuptools>=77.0", "nuitka>=4.0.6"]
 build-backend = "nuitka.distutils.Build"
 
 [project.optional-dependencies]
@@ -132,7 +132,7 @@ exclude = [".venv", "build"]
     stderr_text = stderr.getvalue()
     print(stderr_text, file=sys.stderr)
     assert result == 1
-    assert "setuptools>=70.1" in stderr_text
+    assert "setuptools>=77.0" in stderr_text
 
 
 def test_diff_exact_version(tmp_path: Path) -> None:
@@ -145,7 +145,7 @@ requires-python = ">=3.11"
 authors = [{name = "test", email = "test@localhost"}]
 
 [build-system]
-requires = ["setuptools==70.1", "nuitka>=4.0.6"]
+requires = ["setuptools==77.0", "nuitka>=4.0.6"]
 build-backend = "nuitka.distutils.Build"
 
 [project.optional-dependencies]
@@ -185,7 +185,7 @@ requires-python = ">=3.11"
 authors = [{name = "test", email = "test@localhost"}]
 
 [build-system]
-requires = ["setuptools>=70.1", "nuitka>=4.0.6,!=4.7"]
+requires = ["setuptools>=77.0", "nuitka>=4.0.6,!=4.7"]
 build-backend = "nuitka.distutils.Build"
 
 [project.optional-dependencies]
@@ -224,7 +224,7 @@ requires-python = ">=3.11"
 authors = [{name = "test", email = "test@localhost"}]
 
 [build-system]
-requires = ["setuptools>=70.1"]
+requires = ["setuptools>=77.0"]
 build-backend = "nuitka.distutils.Build"
 
 [project.optional-dependencies]
@@ -263,7 +263,7 @@ requires-python = ">=3.11"
 authors = [{name = "test", email = "test@localhost"}]
 
 [build-system]
-requires = ["setuptools>=70.1; python_version >= '3.11'", "nuitka>=4.0.6"]
+requires = ["setuptools>=77.0; python_version >= '3.11'", "nuitka>=4.0.6"]
 build-backend = "nuitka.distutils.Build"
 
 [project.optional-dependencies]
@@ -302,7 +302,7 @@ requires-python = ">=3.11"
 authors = [{name = "test", email = "test@localhost"}]
 
 [build-system]
-requires = ["setuptools>=70.1; sys_platform == 'win32'", "nuitka>=4.0.6"]
+requires = ["setuptools>=77.0; sys_platform == 'win32'", "nuitka>=4.0.6"]
 build-backend = "nuitka.distutils.Build"
 
 [project.optional-dependencies]
@@ -340,7 +340,7 @@ requires-python = ">=3.11"
 authors = [{name = "test", email = "test@localhost"}]
 
 [build-system]
-requires = ["setuptools>=70.1", "nuitka>=4.0.6"]
+requires = ["setuptools>=77.0", "nuitka>=4.0.6"]
 build-backend = "nuitka.distutils.Build"
 
 [project.optional-dependencies]
@@ -378,7 +378,7 @@ requires-python = ">=3.11"
 authors = [{name = "test", email = "test@localhost"}]
 
 [build-system]
-requires = ["setuptools>=70.1", "nuitka>=4.0.6"]
+requires = ["setuptools>=77.0", "nuitka>=4.0.6"]
 build-backend = "nuitka.distutils.Build"
 
 [project.optional-dependencies]
@@ -416,7 +416,7 @@ license = "MIT"
 requires-python = ">=3.11"
 
 [build-system]
-requires = ["setuptools>=70.1", "nuitka>=4.0.6"]
+requires = ["setuptools>=77.0", "nuitka>=4.0.6"]
 build-backend = "nuitka.distutils.Build"
 
 [project.optional-dependencies]
@@ -455,7 +455,7 @@ requires-python = ">=3.11"
 authors = []
 
 [build-system]
-requires = ["setuptools>=70.1", "nuitka>=4.0.6"]
+requires = ["setuptools>=77.0", "nuitka>=4.0.6"]
 build-backend = "nuitka.distutils.Build"
 
 [project.optional-dependencies]
@@ -553,7 +553,7 @@ requires-python = ">=3.11"
 authors = [{name = "test", email = "test@localhost"}]
 
 [build-system]
-requires = ["setuptools>=70.1", "nuitka>=4.0.6"]
+requires = ["setuptools>=77.0", "nuitka>=4.0.6"]
 build-backend = "setuptools.build_meta"
 
 [project.optional-dependencies]
@@ -593,7 +593,7 @@ requires-python = ">=3.11"
 authors = [{name = "test", email = "test@localhost"}]
 
 [build-system]
-requires = ["setuptools>=70.1", "nuitka>=4.0.6"]
+requires = ["setuptools>=77.0", "nuitka>=4.0.6"]
 build-backend = "nuitka.distutils.Build"
 
 [project.optional-dependencies]
@@ -630,7 +630,7 @@ requires-python = ">=3.11"
 authors = [{name = "test", email = "test@localhost"}]
 
 [build-system]
-requires = ["setuptools>=70.1", "nuitka>=4.0.6"]
+requires = ["setuptools>=77.0", "nuitka>=4.0.6"]
 build-backend = "nuitka.distutils.Build"
 
 [project.optional-dependencies]
@@ -667,7 +667,7 @@ requires-python = ">=3.11"
 authors = [{name = "test", email = "test@localhost"}]
 
 [build-system]
-requires = ["setuptools>=70.1", "nuitka>=4.0.6"]
+requires = ["setuptools>=77.0", "nuitka>=4.0.6"]
 build-backend = "nuitka.distutils.Build"
 
 [project.optional-dependencies]
@@ -706,7 +706,7 @@ requires-python = ">=3.11"
 authors = [{name = "test", email = "test@localhost"}]
 
 [build-system]
-requires = ["setuptools>=70.1", "nuitka>=4.0.6"]
+requires = ["setuptools>=77.0", "nuitka>=4.0.6"]
 build-backend = "nuitka.distutils.Build"
 
 [project.optional-dependencies]
@@ -745,7 +745,7 @@ requires-python = ">=3.11"
 authors = [{name = "test", email = "test@localhost"}]
 
 [build-system]
-requires = ["setuptools>=70.1", "nuitka>=4.0.6"]
+requires = ["setuptools>=77.0", "nuitka>=4.0.6"]
 build-backend = "nuitka.distutils.Build"
 
 [project.optional-dependencies]
@@ -785,7 +785,7 @@ requires-python = ">=3.11"
 authors = [{name = "test", email = "test@localhost"}]
 
 [build-system]
-requires = ["setuptools>=70.1", "nuitka>=4.0.6"]
+requires = ["setuptools>=77.0", "nuitka>=4.0.6"]
 build-backend = "nuitka.distutils.Build"
 
 [project.optional-dependencies]
@@ -824,7 +824,7 @@ requires-python = ">=3.11"
 authors = [{name = "test", email = "test@localhost"}]
 
 [build-system]
-requires = ["setuptools>=70.1", "nuitka>=4.0.6"]
+requires = ["setuptools>=77.0", "nuitka>=4.0.6"]
 build-backend = "nuitka.distutils.Build"
 
 [project.optional-dependencies]
@@ -863,7 +863,7 @@ requires-python = ">=3.11"
 authors = [{name = "first", email = "first@localhost"}, {name = "second", email = "second@localhost"}]
 
 [build-system]
-requires = ["setuptools>=70.1", "nuitka>=4.0.6"]
+requires = ["setuptools>=77.0", "nuitka>=4.0.6"]
 build-backend = "nuitka.distutils.Build"
 
 [project.optional-dependencies]
@@ -921,7 +921,7 @@ license = "MIT"
 authors = [{name = "test", email = "test@localhost"}]
 
 [build-system]
-requires = ["setuptools>=70.1", "nuitka>=4.0.6"]
+requires = ["setuptools>=77.0", "nuitka>=4.0.6"]
 build-backend = "nuitka.distutils.Build"
 
 [project.optional-dependencies]
