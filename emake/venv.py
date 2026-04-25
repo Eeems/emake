@@ -131,7 +131,6 @@ class VirtualEnvironment:
             "-m",
             "venv",
             "--system-site-packages",
-            "--upgrade",
             self.path,
             chronic=True,
         )

@@ -15,13 +15,11 @@ classifiers = [
 ]
 
 [build-system]
-requires = ["setuptools>=70.1", "nuitka>=4.0.6"]
+requires = ["setuptools>=77.0", "nuitka>=4.0.6"]
 build-backend = "nuitka.distutils.Build"
 
 [project.optional-dependencies]
-test = [
-    "pytest",
-]
+test = ["pytest"]
 
 [tool.setuptools]
 packages = ["{name}"]
