@@ -37,6 +37,11 @@ chown -R "$owner" build/ dist/
     if libc == "glibc":
         script = f"apt-get update;apt-get install -y patchelf;{script}"
 
+    else:
+        script = (
+            f"apk add --no-cache patchelf binutils gcc python3-dev musl-dev;{script}"
+        )
+
     print(f"Building executables for {arch} ({libc}) with Python {python}...")
     if arch != "x86_64":
         _ = subprocess.run(
@@ -60,7 +65,7 @@ chown -R "$owner" build/ dist/
             f"--volume={os.getcwd()}:/src",
             f"--platform={get_platform(arch)}",
             get_python_image(python, libc),
-            "/bin/bash",
+            "/bin/sh",
             "-ec",
             script,
         ],
