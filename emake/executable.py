@@ -1,6 +1,7 @@
 import os
 import subprocess
 import sys
+from platform import uname
 
 from .wheel import check_docker, get_platform, get_python_image, get_python_interpreter
 
@@ -48,7 +49,7 @@ chown -R "$owner" build/ dist/
         script = f"apk add --no-cache patchelf binutils gcc musl-dev libffi-dev zstd-libs;{script}"
 
     print(f"Building executables for {arch} ({libc}) with Python {python}...")
-    if arch != "x86_64":
+    if arch != uname().machine:
         _ = subprocess.run(
             [
                 "docker",

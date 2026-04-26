@@ -4,6 +4,7 @@ import os
 import subprocess
 import sys
 from glob import iglob
+from platform import uname
 
 
 def check_docker() -> bool:
@@ -100,7 +101,7 @@ rm -rf wheelhouse/
 """
 
     print(f"Building manylinux wheel for {arch} ({libc}) with Python {python}...")
-    if arch != "x86_64":
+    if arch != uname().machine:
         _ = subprocess.run(
             [
                 "docker",
@@ -237,7 +238,7 @@ python -m pytest -vv tests
         case _:
             pass
 
-    if arch != "x86_64":
+    if arch != uname().machine:
         _ = subprocess.run(
             [
                 "docker",
