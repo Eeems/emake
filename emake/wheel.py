@@ -86,7 +86,10 @@ PATH="/opt/python/{python_interpreter}/bin:$PATH"
 cd /src
 {setup or ""}
 rm -rf build/
-python -m pip install --upgrade build
+python -m pip install \
+  --upgrade \
+  --extra-index-url="https://wheels.eeems.codes" \
+  build
 python -m build --wheel {" ".join(flags)}
 {f"auditwheel repair dist/*_{arch}.whl" if native else ""}
 owner=$(stat -c '%u:%g' .)
@@ -186,7 +189,10 @@ def test_manylinux_wheel(arch: str, libc: str, python: str, setup: str | None) -
     script = f"""
 cd /src
 {setup or ""}
-pip install --root-user-action=ignore "{wheel_path}"[test]
+pip install \
+  --root-user-action=ignore \
+  --extra-index-url="https://wheels.eeems.codes" \
+  "{wheel_path}"[test]
 git config --global user.email 'root@localhost'
 git config --global user.name "Test Runner"
 git config --global init.defaultBranch trunk
