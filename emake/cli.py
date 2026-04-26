@@ -14,6 +14,7 @@ from .config import (
     ProjectConfig,
     diff,
 )
+from .executable import build_executable
 from .lint import run_lint
 from .venv import get_venv
 from .wheel import (
@@ -117,7 +118,6 @@ def cmd_test(args: argparse.Namespace, _parser: argparse.ArgumentParser) -> int:
     """Handle the test command."""
     if args.wheel:  # pyright: ignore[reportAny]
         test_manylinux_wheel(
-            None,
             arch=args.arch,  # pyright: ignore[reportAny]
             libc=args.libc,  # pyright: ignore[reportAny]
             python=args.python,  # pyright: ignore[reportAny]
@@ -153,6 +153,21 @@ def cmd_build(args: argparse.Namespace, _parser: argparse.ArgumentParser) -> int
             libc=args.libc,  # pyright: ignore[reportAny]
             python=args.python,  # pyright: ignore[reportAny]
             setup=args.setup,  # pyright: ignore[reportAny]
+        )
+
+    if args.executable:  # pyright: ignore[reportAny]
+        config = ProjectConfig()
+        if config.name is None:
+            print("Error: Project name missing", file=sys.stderr)
+            return 1
+
+        build_executable(
+            config.name,
+            arch=args.arch,  # pyright: ignore[reportAny]
+            libc=args.libc,  # pyright: ignore[reportAny]
+            python=args.python,  # pyright: ignore[reportAny]
+            setup=args.setup,  # pyright: ignore[reportAny]
+            no_compress=args.no_compress,  # pyright: ignore[reportAny]
         )
 
     return 0
@@ -273,8 +288,19 @@ def main(argv: list[str] | None = None) -> int:
     _ = subparser.add_argument(
         "--native-wheel",
         action="store_true",
-        help="Build platform-specific wheel instead of pure Python wheel",
+        help="Build platform-specific wheel.",
         dest="native_wheel",
+    )
+    _ = subparser.add_argument(
+        "--executable",
+        action="store_true",
+        help="Build standalone executable, this assumes module.__main__ exists",
+    )
+    _ = subparser.add_argument(
+        "--no-compress",
+        action="store_true",
+        help="Do not compress the standalone executable. This reduces memory requirements and build time.",
+        dest="no_compress",
     )
     _ = subparser.add_argument(
         "--arch",

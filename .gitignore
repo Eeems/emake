@@ -5,3 +5,4 @@ dist/
 build/
 .emake/
 wheelhouse/
+nuitka-crash-report.xml

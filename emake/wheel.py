@@ -1,8 +1,10 @@
 """Docker-based manylinux wheel building for emake."""
 
+import os
 import subprocess
 import sys
-from pathlib import Path
+from glob import iglob
+from platform import uname
 
 
 def check_docker() -> bool:
@@ -78,7 +80,6 @@ def build_manylinux_wheel(
     if not native:  # TODO determine based on build system in use
         flags.append("--config-setting=build_with_nuitka=false")
 
-    # Create build script
     script = f"""
 set -e
 manylinux-interpreters ensure "{python_interpreter}"
@@ -86,7 +87,10 @@ PATH="/opt/python/{python_interpreter}/bin:$PATH"
 cd /src
 {setup or ""}
 rm -rf build/
-python -m pip install --upgrade build
+python -m pip install \
+  --upgrade \
+  --extra-index-url="https://wheels.eeems.codes" \
+  build
 python -m build --wheel {" ".join(flags)}
 {f"auditwheel repair dist/*_{arch}.whl" if native else ""}
 owner=$(stat -c '%u:%g' .)
@@ -96,11 +100,8 @@ chown -R "$owner" dist/ *.egg-info/ build/
 rm -rf wheelhouse/
 """
 
-    # Run Docker container
     print(f"Building manylinux wheel for {arch} ({libc}) with Python {python}...")
-
-    # Setup binfmt for non-x86_64 architectures
-    if arch != "x86_64":
+    if arch != uname().machine:
         _ = subprocess.run(
             [
                 "docker",
@@ -120,7 +121,7 @@ rm -rf wheelhouse/
             "run",
             "--rm",
             "-v",
-            f"{Path.cwd()}:/src",
+            f"{os.getcwd()}:/src",
             f"quay.io/pypa/{image}:latest",
             "/bin/bash",
             "-ec",
@@ -132,48 +133,60 @@ rm -rf wheelhouse/
     print(f"Manylinux wheel built for {arch}")
 
 
-def test_manylinux_wheel(
-    wheel_path: Path | None,
-    arch: str | None,
-    libc: str | None,
-    python: str | None,
-    setup: str | None,
-) -> None:
-    """Test a built manylinux wheel.
+def find_wheel(directory: str, arch: str) -> str | None:
+    if not os.path.exists(directory):
+        return None
 
-    Args:
-        wheel_path: Path to wheel file. If None, searches wheelhouse/.
-        arch: Target architecture. Defaults to environment or "x86_64".
-        libc: Target libc. Defaults to environment or "glibc".
-        python: Python version. Defaults to environment or "3.11".
-    """
+    for file in iglob(f"{directory}/*_{arch}.whl"):
+        return file
+
+    for file in iglob(f"{directory}/*.whl"):
+        return file
+
+    return None
+
+
+def get_platform(arch: str) -> str:
+    match arch:
+        case "i686":
+            return "linux/386"
+
+        case "armv7l":
+            return "linux/arm/v7"
+
+        case _:
+            return f"linux/{arch}"
+
+
+def get_python_image(python: str, libc: str) -> str:
+    if libc == "musl":
+        return f"python:{python}-alpine"
+
+    return f"python:{python}"
+
+
+def test_manylinux_wheel(arch: str, libc: str, python: str, setup: str | None) -> None:
+    """Test a built manylinux wheel"""
     if not check_docker():
         print("Error: Docker is not available", file=sys.stderr)
         sys.exit(1)
 
-    # Find wheel if not provided
-    if wheel_path is None:
-        # Check wheelhouse for manylinux wheels, then dist for any wheel
-        for directory in ["wheelhouse", "dist"]:
-            dir_path = Path(directory)
-            if dir_path.exists():
-                # Try architecture-specific first, then any wheel file
-                wheels = list(dir_path.glob(f"*_{arch}.whl"))
-                if not wheels:
-                    wheels = list(dir_path.glob("*.whl"))
-                if wheels:
-                    wheel_path = wheels[0]
-                    break
+    wheel_path: str | None = None
+    for directory in ["wheelhouse", "dist"]:
+        wheel_path = find_wheel(directory, arch)
+        if wheel_path is not None:
+            break
 
-    if wheel_path is None or not wheel_path.exists():
+    else:
         raise FileNotFoundError(f"Error: No wheel found for architecture {arch}")
 
-    # Create test script
     script = f"""
-set -e
 cd /src
 {setup or ""}
-pip install --root-user-action=ignore "{wheel_path}"[test]
+pip install \
+  --root-user-action=ignore \
+  --extra-index-url="https://wheels.eeems.codes" \
+  "{wheel_path}"[test]
 git config --global user.email 'root@localhost'
 git config --global user.name "Test Runner"
 git config --global init.defaultBranch trunk
@@ -183,13 +196,8 @@ cp -r /src/tests .
 python -m pytest -vv tests
 """
 
-    # Select image based on libc
     if libc == "musl":
-        image = f"python:{python}-alpine"
         script = f"apk add --no-cache git;{script}"
-
-    else:
-        image = f"python:{python}"
 
     def install_rust() -> str:
         match libc:
@@ -205,11 +213,9 @@ python -m pytest -vv tests
     match arch:
         case "i686":
             script = f"{install_rust()}{script}"
-            platform = "linux/386"
 
         case "s390x":
             script = f"{install_rust()}{script}"
-            platform = "linux/s390x"
 
         case "riscv64":
             if python == "3.11" and libc == "glibc":
@@ -220,23 +226,19 @@ python -m pytest -vv tests
                 return
 
             script = f"{install_rust()}{script}"
-            platform = "linux/riscv64"
 
         case "ppc64le":
-            platform = "linux/ppc64le"
             if libc == "musl":
                 script = f"{install_rust()}{script}"
 
         case "armv7l":
-            platform = "linux/arm/v7"
             if libc == "musl":
                 script = f"{install_rust()}{script}"
 
         case _:
-            platform = f"linux/{arch}"
+            pass
 
-    # Setup binfmt for non-x86_64 architectures
-    if arch != "x86_64":
+    if arch != uname().machine:
         _ = subprocess.run(
             [
                 "docker",
@@ -250,16 +252,15 @@ python -m pytest -vv tests
             check=True,
         )
 
+    image = get_python_image(python, libc)
     print(f"Testing wheel {wheel_path} on {image}...")
-
     _ = subprocess.run(
         [
             "docker",
             "run",
             "--rm",
-            "--volume",
-            f"{Path.cwd()}:/src",
-            f"--platform={platform}",
+            f"--volume={os.getcwd()}:/src",
+            f"--platform={get_platform(arch)}",
             image,
             "/bin/sh",
             "-ec",

@@ -136,6 +136,61 @@ jobs:
           path: dist/*
           if-no-files-found: error
 
+  build-executable:
+    name: Build executable
+    needs: *build-needs
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python:
+          - "3.11"
+        arch:
+          - x86_64
+          - i686
+          - ppc64le
+          - aarch64
+          - armv7l
+          - riscv64
+          - s390x
+        libc:
+          - glibc
+          - musl
+        exclude:
+          - arch: i686 # Currently getting OOM error
+          - arch: armv7l # Currently getting OOM error
+            libc: glibc
+        include:
+          - arch: i686
+            libc: glibc
+            python: "3.11"
+            nocompress: true
+          - arch: i686
+            libc: musl
+            python: "3.11"
+            nocompress: true
+          - arch: armv7l
+            libc: glibc
+            python: "3.11"
+            nocompress: true
+    steps:
+      - name: Checkout the Git repository
+        uses: actions/checkout@v6
+      - *install-emake
+      - name: Building executable
+        run: |
+          emake build \
+            --executable \
+            --arch ${{{{ matrix.arch }}}} \
+            --libc ${{{{ matrix.libc }}}} \
+            --python ${{{{ matrix.python }}}} \
+            ${{{{ matrix.nocompress && '--no-compress' || '' }}}}
+      - uses: actions/upload-artifact@v6
+        with:
+          name: executable-${{{{ matrix.python }}}}-${{{{ matrix.arch }}}}-${{{{ matrix.libc }}}}
+          path: dist/*
+          if-no-files-found: error
+
   publish:
     name: Publish to PyPi
     if: github.event_name == 'release' && startsWith(github.ref, 'refs/tags')
@@ -143,6 +198,7 @@ jobs:
       - build-sdist
       - build-any-wheel
       - build-wheel
+      - build-executable
     runs-on: ubuntu-latest
     permissions:
       id-token: write
@@ -180,6 +236,12 @@ jobs:
           pattern: pip-*
           merge-multiple: true
           path: dist
+      - name: Download executables
+        uses: actions/download-artifact@v8
+        with:
+          pattern: executable-*
+          merge-multiple: true
+          path: ${{{{ steps.download.outputs.download-path }}}}
       - name: Upload to release
         run: find . -type f | xargs -rI {{}} gh release upload "$TAG" {{}} --clobber
         env:
