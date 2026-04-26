@@ -221,7 +221,7 @@ jobs:
           pattern: pip-*
           merge-multiple: true
           path: dist
-      - name: Download pip packages
+      - name: Download executables
         uses: actions/download-artifact@v8
         with:
           pattern: executable-*

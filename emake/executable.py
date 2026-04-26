@@ -44,7 +44,7 @@ chown -R "$owner" build/ dist/
         script = f"apt-get update;apt-get install -y patchelf;{script}"
 
     else:
-        script = f"apk add --no-cache patchelf binutils gcc python3-dev musl-dev libffi-dev zstd-libs;{script}"
+        script = f"apk add --no-cache patchelf binutils gcc musl-dev libffi-dev zstd-libs;{script}"
 
     print(f"Building executables for {arch} ({libc}) with Python {python}...")
     if arch != "x86_64":
