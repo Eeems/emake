@@ -164,7 +164,7 @@ jobs:
       - name: Setup swapfile
         run: |
           set -e
-          fallocate -l 2G .swapfile
+          fallocate -l 8G .swapfile
           chmod 600 .swapfile
           mkswap .swapfile
           sudo chown 0:0 .swapfile
