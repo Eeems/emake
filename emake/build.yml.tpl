@@ -165,7 +165,8 @@ jobs:
           fallocate -l 2G .swapfile
           chmod 600 .swapfile
           mkswap .swapfile
-          swapon .swapfile
+          sudo chown 0:0 .swapfile
+          sudo swapon .swapfile
       - *install-emake
       - name: Building executable
         run: |
@@ -177,8 +178,8 @@ jobs:
       - name: Remove swap
         run: |
           set -e
-          swapoff .swapfile
-          rm .swapfile
+          sudo swapoff .swapfile
+          sudo rm .swapfile
       - uses: actions/upload-artifact@v6
         with:
           name: executable-${{{{ matrix.python }}}}-${{{{ matrix.arch }}}}-${{{{ matrix.libc }}}}
