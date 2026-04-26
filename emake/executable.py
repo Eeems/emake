@@ -11,6 +11,7 @@ def build_executable(
     libc: str,
     python: str,
     setup: str | None,
+    no_compress: bool,
 ) -> None:
     if not check_docker():
         print("Error: Docker is not available", file=sys.stderr)
@@ -24,7 +25,7 @@ def build_executable(
         f"--include-package-data={package}",
     ]
     # Currently unable to do compression in github actions due to memory constraints
-    if arch == "i686" or (arch == "armv7l" and libc == "glibc"):
+    if no_compress:
         flags.append("--onefile-no-compression")
 
     script = f"""

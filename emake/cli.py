@@ -167,6 +167,7 @@ def cmd_build(args: argparse.Namespace, _parser: argparse.ArgumentParser) -> int
             libc=args.libc,  # pyright: ignore[reportAny]
             python=args.python,  # pyright: ignore[reportAny]
             setup=args.setup,  # pyright: ignore[reportAny]
+            no_compress=args.no_compress,  # pyright: ignore[reportAny]
         )
 
     return 0
@@ -294,6 +295,12 @@ def main(argv: list[str] | None = None) -> int:
         "--executable",
         action="store_true",
         help="Build standalone executable, this assumes module.__main__ exists",
+    )
+    _ = subparser.add_argument(
+        "--no-compress",
+        action="store_true",
+        help="Do not compress the standalone executable. This reduces memory requirements and build time.",
+        dest="no_compress",
     )
     _ = subparser.add_argument(
         "--arch",

@@ -156,6 +156,12 @@ jobs:
         libc:
           - glibc
           - musl
+        include:
+          - arch: i686
+            nocompress: "true"
+          - arch: armv7l
+            libc: glibc
+            nocompress: "true"
     steps:
       - name: Checkout the Git repository
         uses: actions/checkout@v6
@@ -166,7 +172,8 @@ jobs:
             --executable \
             --arch ${{{{ matrix.arch }}}} \
             --libc ${{{{ matrix.libc }}}} \
-            --python ${{{{ matrix.python }}}}
+            --python ${{{{ matrix.python }}}} \
+            ${{{{ matrix.no_compress && '--no-compress' || '' }}}}
       - uses: actions/upload-artifact@v6
         with:
           name: executable-${{{{ matrix.python }}}}-${{{{ matrix.arch }}}}-${{{{ matrix.libc }}}}
