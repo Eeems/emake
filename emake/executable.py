@@ -19,7 +19,7 @@ def build_executable(
     script = f"""
 cd /src
 {setup or ""}
-mkdir -p build/
+mkdir -p build/ dist/
 python -m pip install \
   --upgrade \
   --root-user-action=ignore \
