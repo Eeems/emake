@@ -14,6 +14,7 @@ from .config import (
     ProjectConfig,
     diff,
 )
+from .executable import build_executable
 from .lint import run_lint
 from .venv import get_venv
 from .wheel import (
@@ -117,7 +118,6 @@ def cmd_test(args: argparse.Namespace, _parser: argparse.ArgumentParser) -> int:
     """Handle the test command."""
     if args.wheel:  # pyright: ignore[reportAny]
         test_manylinux_wheel(
-            None,
             arch=args.arch,  # pyright: ignore[reportAny]
             libc=args.libc,  # pyright: ignore[reportAny]
             python=args.python,  # pyright: ignore[reportAny]
@@ -149,6 +149,19 @@ def cmd_build(args: argparse.Namespace, _parser: argparse.ArgumentParser) -> int
     if args.native_wheel:  # pyright: ignore[reportAny]
         build_manylinux_wheel(
             True,
+            arch=args.arch,  # pyright: ignore[reportAny]
+            libc=args.libc,  # pyright: ignore[reportAny]
+            python=args.python,  # pyright: ignore[reportAny]
+            setup=args.setup,  # pyright: ignore[reportAny]
+        )
+
+    if args.executable:  # pyright: ignore[reportAny]
+        config = ProjectConfig()
+        if config.name is None:
+            raise ValueError("Project name missing")
+
+        build_executable(
+            config.name,
             arch=args.arch,  # pyright: ignore[reportAny]
             libc=args.libc,  # pyright: ignore[reportAny]
             python=args.python,  # pyright: ignore[reportAny]
@@ -273,8 +286,14 @@ def main(argv: list[str] | None = None) -> int:
     _ = subparser.add_argument(
         "--native-wheel",
         action="store_true",
-        help="Build platform-specific wheel instead of pure Python wheel",
+        help="Build platform-specific wheel instead of pure Python wheel for the ",
         dest="native_wheel",
+    )
+    _ = subparser.add_argument(
+        "--executable",
+        default=None,
+        action="store_true",
+        help="Build standalone executable, this assumes moulde.__main__ exists",
     )
     _ = subparser.add_argument(
         "--arch",
