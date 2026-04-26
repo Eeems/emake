@@ -159,14 +159,6 @@ jobs:
     steps:
       - name: Checkout the Git repository
         uses: actions/checkout@v6
-      - name: Setup swapfile
-        run: |
-          set -e
-          fallocate -l 8G .swapfile
-          chmod 600 .swapfile
-          mkswap .swapfile
-          sudo chown 0:0 .swapfile
-          sudo swapon .swapfile
       - *install-emake
       - name: Building executable
         run: |
@@ -175,11 +167,6 @@ jobs:
             --arch ${{{{ matrix.arch }}}} \
             --libc ${{{{ matrix.libc }}}} \
             --python ${{{{ matrix.python }}}}
-      - name: Remove swap
-        run: |
-          set -e
-          sudo swapoff .swapfile
-          sudo rm .swapfile
       - uses: actions/upload-artifact@v6
         with:
           name: executable-${{{{ matrix.python }}}}-${{{{ matrix.arch }}}}-${{{{ matrix.libc }}}}

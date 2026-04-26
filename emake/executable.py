@@ -16,6 +16,17 @@ def build_executable(
         print("Error: Docker is not available", file=sys.stderr)
         sys.exit(1)
 
+    flags: list[str] = [
+        "--python-flag=-m",
+        "--mode=onefile",
+        "--output-dir=build/",
+        f"--output-filename=../dist/{package}-{arch}-cp{get_python_interpreter(python)}-{libc}",
+        f"--include-package-data={package}",
+    ]
+    # Currently unable to do compression in github actions due to memory constraints
+    if arch == "i686" or (arch == "armv7l" and libc == "glibc"):
+        flags.append("--onefile-no-compression")
+
     script = f"""
 cd /src
 {setup or ""}
@@ -25,13 +36,7 @@ python -m pip install \
   --root-user-action=ignore \
   --extra-index-url="https://wheels.eeems.codes" \
   nuitka[onefile]
-python -m nuitka \
-  --python-flag=-m \
-  --mode=onefile \
-  --output-dir=build/ \
-  --output-filename="../dist/{package}-{arch}-cp{get_python_interpreter(python)}-{libc}" \
-  --include-package-data={package} \
-  {package}
+python -m nuitka {" ".join(flags)} {package}
 owner=$(stat -c '%u:%g' .)
 chown -R "$owner" build/ dist/
 """
