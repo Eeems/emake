@@ -219,12 +219,11 @@ jobs:
           merge-multiple: true
           path: dist
       - name: Download pip packages
-        id: download
         uses: actions/download-artifact@v8
         with:
           pattern: executable-*
           merge-multiple: true
-          path: dist
+          path: ${{{{ steps.download.outputs.download-path }}}}
       - name: Upload to release
         run: find . -type f | xargs -rI {{}} gh release upload "$TAG" {{}} --clobber
         env:

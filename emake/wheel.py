@@ -165,14 +165,7 @@ def get_python_image(python: str, libc: str) -> str:
 
 
 def test_manylinux_wheel(arch: str, libc: str, python: str, setup: str | None) -> None:
-    """Test a built manylinux wheel.
-
-    Args:
-        wheel_path: Path to wheel file. If None, searches wheelhouse/.
-        arch: Target architecture. Defaults to environment or "x86_64".
-        libc: Target libc. Defaults to environment or "glibc".
-        python: Python version. Defaults to environment or "3.11".
-    """
+    """Test a built manylinux wheel"""
     if not check_docker():
         print("Error: Docker is not available", file=sys.stderr)
         sys.exit(1)

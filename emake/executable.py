@@ -20,7 +20,7 @@ def build_executable(
         "--python-flag=-m",
         "--mode=onefile",
         "--output-dir=build/",
-        f"--output-filename=../dist/{package}-{arch}-cp{get_python_interpreter(python)}-{libc}",
+        f"--output-filename=../dist/{package}-{arch}-{get_python_interpreter(python)}-{libc}",
         f"--include-package-data={package}",
     ]
     # Currently unable to do compression in github actions due to memory constraints
@@ -76,4 +76,4 @@ chown -R "$owner" build/ dist/
         check=True,
     )
 
-    print(f"Manylinux wheel built for {arch}")
+    print(f"Executable built for {arch}")

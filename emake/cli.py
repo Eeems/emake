@@ -158,7 +158,8 @@ def cmd_build(args: argparse.Namespace, _parser: argparse.ArgumentParser) -> int
     if args.executable:  # pyright: ignore[reportAny]
         config = ProjectConfig()
         if config.name is None:
-            raise ValueError("Project name missing")
+            print("Error: Project name missing")
+            return 1
 
         build_executable(
             config.name,
@@ -286,14 +287,13 @@ def main(argv: list[str] | None = None) -> int:
     _ = subparser.add_argument(
         "--native-wheel",
         action="store_true",
-        help="Build platform-specific wheel instead of pure Python wheel for the ",
+        help="Build platform-specific wheel.",
         dest="native_wheel",
     )
     _ = subparser.add_argument(
         "--executable",
-        default=None,
         action="store_true",
-        help="Build standalone executable, this assumes moulde.__main__ exists",
+        help="Build standalone executable, this assumes module.__main__ exists",
     )
     _ = subparser.add_argument(
         "--arch",
