@@ -158,7 +158,7 @@ def cmd_build(args: argparse.Namespace, _parser: argparse.ArgumentParser) -> int
     if args.executable:  # pyright: ignore[reportAny]
         config = ProjectConfig()
         if config.name is None:
-            print("Error: Project name missing")
+            print("Error: Project name missing", file=sys.stderr)
             return 1
 
         build_executable(

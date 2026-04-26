@@ -156,12 +156,23 @@ jobs:
         libc:
           - glibc
           - musl
+        exclude:
+          - arch: i686 # Currently getting OOM error
+          - arch: armv7l # Currently getting OOM error
+            libc: glibc
         include:
           - arch: i686
-            nocompress: "true"
+            libc: glibc
+            python: "3.11"
+            nocompress: true
+          - arch: i686
+            libc: musl
+            python: "3.11"
+            nocompress: true
           - arch: armv7l
             libc: glibc
-            nocompress: "true"
+            python: "3.11"
+            nocompress: true
     steps:
       - name: Checkout the Git repository
         uses: actions/checkout@v6
@@ -173,7 +184,7 @@ jobs:
             --arch ${{{{ matrix.arch }}}} \
             --libc ${{{{ matrix.libc }}}} \
             --python ${{{{ matrix.python }}}} \
-            ${{{{ matrix.no_compress && '--no-compress' || '' }}}}
+            ${{{{ matrix.nocompress && '--no-compress' || '' }}}}
       - uses: actions/upload-artifact@v6
         with:
           name: executable-${{{{ matrix.python }}}}-${{{{ matrix.arch }}}}-${{{{ matrix.libc }}}}
