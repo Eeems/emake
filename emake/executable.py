@@ -38,6 +38,12 @@ python -m pip install \
   --root-user-action=ignore \
   --extra-index-url="https://wheels.eeems.codes" \
   nuitka[onefile]
+python -m pip install \
+  --upgrade \
+  --root-user-action=ignore \
+  --extra-index-url="https://wheels.eeems.codes" \
+  --editable \
+  .
 python -m nuitka {" ".join(flags)} {package}
 owner=$(stat -c '%u:%g' .)
 chown -R "$owner" build/ dist/
