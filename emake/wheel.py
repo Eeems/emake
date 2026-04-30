@@ -90,6 +90,7 @@ rm -rf build/
 python -m pip install \
   --upgrade \
   --extra-index-url="https://wheels.eeems.codes" \
+  --extra-index-url="https://www.piwheels.org/simple" \
   build
 python -m build --wheel {" ".join(flags)}
 {f"auditwheel repair dist/*_{arch}.whl" if native else ""}
@@ -186,6 +187,7 @@ cd /src
 pip install \
   --root-user-action=ignore \
   --extra-index-url="https://wheels.eeems.codes" \
+  --extra-index-url="https://www.piwheels.org/simple" \
   "{wheel_path}"[test]
 git config --global user.email 'root@localhost'
 git config --global user.name "Test Runner"
