@@ -44,15 +44,15 @@ python -m pip install \
   --extra-index-url="https://wheels.eeems.codes" \
   --editable \
   .
-python -m nuitka {" ".join(flags)} {package}
+NUITKA_RESOURCE_MODE=code mold -run python -m nuitka {" ".join(flags)} {package}
 owner=$(stat -c '%u:%g' .)
 chown -R "$owner" build/ dist/
 """
     if libc == "glibc":
-        script = f"apt-get update;apt-get install -y patchelf;{script}"
+        script = f"apt-get update;apt-get install -y patchelf mold;{script}"
 
     else:
-        script = f"apk add --no-cache patchelf binutils gcc musl-dev libffi-dev zstd-libs make;{script}"
+        script = f"apk add --no-cache patchelf binutils gcc musl-dev libffi-dev zstd-libs make mold;{script}"
 
     print(f"Building executables for {arch} ({libc}) with Python {python}...")
     if arch != uname().machine:
