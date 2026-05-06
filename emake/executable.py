@@ -13,6 +13,7 @@ def build_executable(
     python: str,
     setup: str | None,
     no_compress: bool,
+    lto: bool,
 ) -> None:
     if not check_docker():
         print("Error: Docker is not available", file=sys.stderr)
@@ -25,6 +26,9 @@ def build_executable(
         f"--output-filename=../dist/{package}-{arch}-{get_python_interpreter(python)}-{libc}",
         f"--include-package-data={package}",
     ]
+    if lto:
+        flags.append("--lto=yes")
+
     # Currently unable to do compression in github actions due to memory constraints
     if no_compress:
         flags.append("--onefile-no-compression")
@@ -49,10 +53,10 @@ owner=$(stat -c '%u:%g' .)
 chown -R "$owner" build/ dist/
 """
     if libc == "glibc":
-        script = f"apt-get update;apt-get install -y patchelf mold;{script}"
+        script = f"apt-get update;apt-get install -y patchelf mold ccache;{script}"
 
     else:
-        script = f"apk add --no-cache patchelf binutils gcc musl-dev libffi-dev zstd-libs make mold;{script}"
+        script = f"apk add --no-cache patchelf binutils gcc musl-dev libffi-dev zstd-libs make mold ccache;{script}"
 
     print(f"Building executables for {arch} ({libc}) with Python {python}...")
     if arch != uname().machine:
