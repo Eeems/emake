@@ -206,17 +206,14 @@ def _get_min_version(spec: SpecifierSet) -> str | None:
     """Get minimum version from a specifier like >=3.8 or ==3.8."""
     version = None
     for s in spec:
-        if s.operator == ">=" and (
-            version is None or s.version.split(".") < version.split(".")
-        ):
-            version = s.version
+        s_version = Version(s.version)
+        if s.operator == ">=" and (version is None or s_version < version):
+            version = s_version
 
-        if s.operator == "==" and (
-            version is None or s.version.split(".") < version.split(".")
-        ):
-            version = s.version
+        if s.operator == "==" and (version is None or s_version < version):
+            version = s_version
 
-    return version
+    return str(version) if version is not None else None
 
 
 def _specifier_covers(exp_spec: SpecifierSet, act_spec: SpecifierSet) -> bool:
