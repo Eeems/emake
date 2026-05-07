@@ -3,7 +3,12 @@ import subprocess
 import sys
 from platform import uname
 
-from .wheel import check_docker, get_platform, get_python_image, get_python_interpreter
+from .wheel import (
+    check_docker,
+    get_platform,
+    get_python_image,
+    get_python_interpreter,
+)
 
 
 def build_executable(
