@@ -186,7 +186,11 @@ jobs:
             --arch ${{ matrix.arch }} \
             --libc ${{ matrix.libc }} \
             --python ${{ matrix.python }} \
+            --teardown "$teardown" \
             ${{ matrix.nocompress && '--no-compress' || '' }}
+        env:
+          teardown: |
+            dist/emake-${{ matrix.arch }}-*-${{ matrix.libc }} --help
       - uses: actions/upload-artifact@v6
         with:
           name: executable-${{ matrix.python }}-${{ matrix.arch }}-${{ matrix.libc }}

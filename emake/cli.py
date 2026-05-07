@@ -127,6 +127,7 @@ def cmd_test(args: argparse.Namespace, _parser: argparse.ArgumentParser) -> int:
             libc=args.libc,  # pyright: ignore[reportAny]
             python=args.python or config.minimum_python_version,  # pyright: ignore[reportAny]
             setup=args.setup,  # pyright: ignore[reportAny]
+            teardown=args.teardown, # pyright: ignore[reportAny]
         )
         return 0
 
@@ -154,6 +155,7 @@ def cmd_build(args: argparse.Namespace, _parser: argparse.ArgumentParser) -> int
             libc=args.libc,  # pyright: ignore[reportAny]
             python=args.python or config.minimum_python_version,  # pyright: ignore[reportAny]
             setup=args.setup,  # pyright: ignore[reportAny]
+            teardown=args.teardown, # pyright: ignore[reportAny]
         )
 
     if args.native_wheel:  # pyright: ignore[reportAny]
@@ -163,6 +165,7 @@ def cmd_build(args: argparse.Namespace, _parser: argparse.ArgumentParser) -> int
             libc=args.libc,  # pyright: ignore[reportAny]
             python=args.python or config.minimum_python_version,  # pyright: ignore[reportAny]
             setup=args.setup,  # pyright: ignore[reportAny]
+            teardown=args.teardown, # pyright: ignore[reportAny]
         )
 
     if args.executable:  # pyright: ignore[reportAny]
@@ -172,6 +175,7 @@ def cmd_build(args: argparse.Namespace, _parser: argparse.ArgumentParser) -> int
             libc=args.libc,  # pyright: ignore[reportAny]
             python=args.python or config.minimum_python_version,  # pyright: ignore[reportAny]
             setup=args.setup,  # pyright: ignore[reportAny]
+            teardown=args.teardown, # pyright: ignore[reportAny]
             no_compress=args.no_compress,  # pyright: ignore[reportAny]
             lto=not args.no_lto,  # pyright: ignore[reportAny]
         )
@@ -271,6 +275,11 @@ def main(argv: list[str] | None = None) -> int:
         help="Script to run before installing the wheel and running the tests. Only relevant when --wheel is specified",
     )
     _ = subparser.add_argument(
+        "--teardown",
+        default=None,
+        help="Script to run after installing the wheel and running the tests. Only relevant when --wheel is specified",
+    )
+    _ = subparser.add_argument(
         "path",
         nargs="?",
         default="tests/",
@@ -334,6 +343,11 @@ def main(argv: list[str] | None = None) -> int:
         "--setup",
         default=None,
         help="Script to run before starting the build.",
+    )
+    _ = subparser.add_argument(
+        "--teardown",
+        default=None,
+        help="Script to run after the build completes.",
     )
 
     _ = subparsers.add_parser(

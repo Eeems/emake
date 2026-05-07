@@ -17,6 +17,7 @@ def build_executable(
     libc: str,
     python: str,
     setup: str | None,
+    teardown: str | None,
     no_compress: bool,
     lto: bool,
 ) -> None:
@@ -56,6 +57,7 @@ chown -R "$owner" build/ dist/
 if [[ "$(patchelf --print-needed "dist/{exename}")" == *"libgcc_s.so.1"* ]]; then
   patchelf --remove-needed libgcc_s.so.1 "dist/{exename}"
 fi
+{teardown or ""}
 """
 
     print(f"Building executables for {arch} ({libc}) with Python {python}...")

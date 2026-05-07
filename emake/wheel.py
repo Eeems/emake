@@ -61,6 +61,7 @@ def build_manylinux_wheel(
     libc: str,
     python: str,
     setup: str | None,
+    teardown: str | None,
 ) -> None:
     """Build a manylinux wheel using Docker.
 
@@ -100,6 +101,7 @@ chown -R "$owner" dist/ *.egg-info/ build/
 {f"rm -f dist/*_{arch}.whl" if native else ""}
 {"mv wheelhouse/* dist/" if native else ""}
 rm -rf wheelhouse/
+{teardown or ""}
 """
 
     print(f"Building manylinux wheel for {arch} ({libc}) with Python {python}...")
@@ -170,7 +172,13 @@ def get_python_image(python: str, libc: str) -> str:
     return f"ghcr.io/eeems/emake-builder:{python}-{libc}"
 
 
-def test_manylinux_wheel(arch: str, libc: str, python: str, setup: str | None) -> None:
+def test_manylinux_wheel(
+    arch: str,
+    libc: str,
+    python: str,
+    setup: str | None,
+    teardown: str | None,
+) -> None:
     """Test a built manylinux wheel"""
     if not check_docker():
         print("Error: Docker is not available", file=sys.stderr)
@@ -207,6 +215,7 @@ mkdir -p /tmp/test
 cd /tmp/test;
 cp -r /src/tests .
 python -m pytest -vv tests
+{teardown or ""}
 """
     if arch != uname().machine:
         _ = subprocess.run(
