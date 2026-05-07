@@ -5,15 +5,20 @@ FROM python:${PYTHON_VERSION}-alpine
 RUN <<EOT
   set -e
   apk add --no-cache \
-    patchelf \
     binutils \
+    cargo \
+    ccache \
     gcc \
-    musl-dev \
+    git \
     libffi-dev \
-    zstd-libs \
     make \
     mold \
-    ccache
+    musl-dev \
+    openssl-dev \
+    patchelf \
+    pkgconfig
+    python3-dev \
+    zstd-libs
   python -m pip install \
     --upgrade \
     --root-user-action=ignore \

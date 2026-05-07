@@ -6,9 +6,11 @@ RUN <<EOT
   set -e
   apt-get update
   apt-get install -y \
-    patchelf \
+    cargo \
+    ccache \
     mold \
-    ccache
+    patchelf \
+    rustc
   python -m pip install \
     --upgrade \
     --root-user-action=ignore \
