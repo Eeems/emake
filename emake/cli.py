@@ -116,6 +116,11 @@ def cmd_requirements(args: argparse.Namespace, _parser: argparse.ArgumentParser)
 
 def cmd_test(args: argparse.Namespace, _parser: argparse.ArgumentParser) -> int:
     """Handle the test command."""
+    config = ProjectConfig()
+    if config.name is None:
+        print("Error: Project name missing", file=sys.stderr)
+        return 1
+
     if args.wheel:  # pyright: ignore[reportAny]
         test_manylinux_wheel(
             arch=args.arch,  # pyright: ignore[reportAny]
@@ -134,6 +139,11 @@ def cmd_build(args: argparse.Namespace, _parser: argparse.ArgumentParser) -> int
     """Handle the build command."""
     venv = get_venv()
     venv.ensure_build_tools()
+    config = ProjectConfig()
+    if config.name is None:
+        print("Error: Project name missing", file=sys.stderr)
+        return 1
+
     if args.sdist:  # pyright: ignore[reportAny]
         build_sdist(venv)
 
@@ -142,7 +152,7 @@ def cmd_build(args: argparse.Namespace, _parser: argparse.ArgumentParser) -> int
             False,
             arch=args.arch,  # pyright: ignore[reportAny]
             libc=args.libc,  # pyright: ignore[reportAny]
-            python=args.python,  # pyright: ignore[reportAny]
+            python=args.python or config.minimum_python_version,  # pyright: ignore[reportAny]
             setup=args.setup,  # pyright: ignore[reportAny]
         )
 
@@ -151,21 +161,16 @@ def cmd_build(args: argparse.Namespace, _parser: argparse.ArgumentParser) -> int
             True,
             arch=args.arch,  # pyright: ignore[reportAny]
             libc=args.libc,  # pyright: ignore[reportAny]
-            python=args.python,  # pyright: ignore[reportAny]
+            python=args.python or config.minimum_python_version,  # pyright: ignore[reportAny]
             setup=args.setup,  # pyright: ignore[reportAny]
         )
 
     if args.executable:  # pyright: ignore[reportAny]
-        config = ProjectConfig()
-        if config.name is None:
-            print("Error: Project name missing", file=sys.stderr)
-            return 1
-
         build_executable(
             config.name,
             arch=args.arch,  # pyright: ignore[reportAny]
             libc=args.libc,  # pyright: ignore[reportAny]
-            python=args.python,  # pyright: ignore[reportAny]
+            python=args.python or config.minimum_python_version,  # pyright: ignore[reportAny]
             setup=args.setup,  # pyright: ignore[reportAny]
             no_compress=args.no_compress,  # pyright: ignore[reportAny]
             lto=not args.no_lto,  # pyright: ignore[reportAny]
@@ -257,8 +262,8 @@ def main(argv: list[str] | None = None) -> int:
     )
     _ = subparser.add_argument(
         "--python",
-        default="3.11",
-        help="Python version for wheel testing (default: 3.11)",
+        default=None,
+        help="Python version for wheel testing. Defaults to lowest supported version.",
     )
     _ = subparser.add_argument(
         "--setup",
@@ -322,8 +327,8 @@ def main(argv: list[str] | None = None) -> int:
     )
     _ = subparser.add_argument(
         "--python",
-        default="3.11",
-        help="Python version for manylinux build (default: 3.11)",
+        default=None,
+        help="Python version for manylinux build. Defaults to lowest supported version.",
     )
     _ = subparser.add_argument(
         "--setup",

@@ -194,17 +194,29 @@ class ProjectConfig:
         project = cast(dict[str, str], project)
         return project.get("requires-python", None)
 
+    @property
+    def minimum_python_version(self) -> str:
+        if self.requires_python is None:
+            return "3.11"
+
+        return _get_min_version(SpecifierSet(self.requires_python)) or "3.11"
+
 
 def _get_min_version(spec: SpecifierSet) -> str | None:
     """Get minimum version from a specifier like >=3.8 or ==3.8."""
+    version = None
     for s in spec:
-        if s.operator == ">=":
-            return s.version
+        if s.operator == ">=" and (
+            version is None or s.version.split(".") < version.split(".")
+        ):
+            version = s.version
 
-        if s.operator == "==":
-            return s.version
+        if s.operator == "==" and (
+            version is None or s.version.split(".") < version.split(".")
+        ):
+            version = s.version
 
-    return None
+    return version
 
 
 def _specifier_covers(exp_spec: SpecifierSet, act_spec: SpecifierSet) -> bool:
