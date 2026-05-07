@@ -16,6 +16,7 @@ def check_docker() -> bool:
             check=False,
         )
         return result.returncode == 0
+
     except FileNotFoundError:
         return False
 
@@ -152,18 +153,21 @@ def get_platform(arch: str) -> str:
         case "i686":
             return "linux/386"
 
+        case "x86_64":
+            return "linux/amd64"
+
         case "armv7l":
             return "linux/arm/v7"
+
+        case "aarch64":
+            return "linux/arm64"
 
         case _:
             return f"linux/{arch}"
 
 
 def get_python_image(python: str, libc: str) -> str:
-    if libc == "musl":
-        return f"python:{python}-alpine"
-
-    return f"python:{python}"
+    return f"ghcr.io/eeems/emake-builder:{python}-{libc}"
 
 
 def test_manylinux_wheel(arch: str, libc: str, python: str, setup: str | None) -> None:
@@ -181,6 +185,13 @@ def test_manylinux_wheel(arch: str, libc: str, python: str, setup: str | None) -
     else:
         raise FileNotFoundError(f"Error: No wheel found for architecture {arch}")
 
+    if arch == "riscv64" and python == "3.11" and libc == "glibc":
+        print(
+            "WARNING: python image does not support cp311-manylinux_2_39_riscv64, exiting without error",
+            file=sys.stderr,
+        )
+        return
+
     script = f"""
 cd /src
 {setup or ""}
@@ -197,49 +208,6 @@ cd /tmp/test;
 cp -r /src/tests .
 python -m pytest -vv tests
 """
-
-    if libc == "musl":
-        script = f"apk add --no-cache git;{script}"
-
-    def install_rust() -> str:
-        match libc:
-            case "musl":
-                return "apk add --no-cache gcc musl-dev python3-dev libffi-dev openssl-dev cargo pkgconfig;"
-
-            case "glibc":
-                return 'apt-get update;DEBIAN_FRONTEND="noninteractive" apt-get install -y rustc cargo;'
-
-            case _:
-                raise NotImplementedError(f"ERROR: Unknown libc {libc}")
-
-    match arch:
-        case "i686":
-            script = f"{install_rust()}{script}"
-
-        case "s390x":
-            script = f"{install_rust()}{script}"
-
-        case "riscv64":
-            if python == "3.11" and libc == "glibc":
-                print(
-                    "WARNING: python image does not support cp311-manylinux_2_39_riscv64, exiting without error",
-                    file=sys.stderr,
-                )
-                return
-
-            script = f"{install_rust()}{script}"
-
-        case "ppc64le":
-            if libc == "musl":
-                script = f"{install_rust()}{script}"
-
-        case "armv7l":
-            if libc == "musl":
-                script = f"{install_rust()}{script}"
-
-        case _:
-            pass
-
     if arch != uname().machine:
         _ = subprocess.run(
             [

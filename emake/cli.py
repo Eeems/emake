@@ -168,6 +168,7 @@ def cmd_build(args: argparse.Namespace, _parser: argparse.ArgumentParser) -> int
             python=args.python,  # pyright: ignore[reportAny]
             setup=args.setup,  # pyright: ignore[reportAny]
             no_compress=args.no_compress,  # pyright: ignore[reportAny]
+            lto=not args.no_lto,  # pyright: ignore[reportAny]
         )
 
     return 0
@@ -301,6 +302,12 @@ def main(argv: list[str] | None = None) -> int:
         action="store_true",
         help="Do not compress the standalone executable. This reduces memory requirements and build time.",
         dest="no_compress",
+    )
+    _ = subparser.add_argument(
+        "--no-lto",
+        action="store_true",
+        help="Do not build executable with lto.",
+        dest="no_lto",
     )
     _ = subparser.add_argument(
         "--arch",

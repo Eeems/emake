@@ -3,7 +3,12 @@ import subprocess
 import sys
 from platform import uname
 
-from .wheel import check_docker, get_platform, get_python_image, get_python_interpreter
+from .wheel import (
+    check_docker,
+    get_platform,
+    get_python_image,
+    get_python_interpreter,
+)
 
 
 def build_executable(
@@ -13,6 +18,7 @@ def build_executable(
     python: str,
     setup: str | None,
     no_compress: bool,
+    lto: bool,
 ) -> None:
     if not check_docker():
         print("Error: Docker is not available", file=sys.stderr)
@@ -25,6 +31,9 @@ def build_executable(
         f"--output-filename=../dist/{package}-{arch}-{get_python_interpreter(python)}-{libc}",
         f"--include-package-data={package}",
     ]
+    if lto:
+        flags.append("--lto=yes")
+
     # Currently unable to do compression in github actions due to memory constraints
     if no_compress:
         flags.append("--onefile-no-compression")
@@ -37,23 +46,12 @@ python -m pip install \
   --upgrade \
   --root-user-action=ignore \
   --extra-index-url="https://wheels.eeems.codes" \
-  nuitka[onefile]
-python -m pip install \
-  --upgrade \
-  --root-user-action=ignore \
-  --extra-index-url="https://wheels.eeems.codes" \
   --editable \
   .
-python -m nuitka {" ".join(flags)} {package}
+NUITKA_RESOURCE_MODE=code mold -run python -m nuitka {" ".join(flags)} {package}
 owner=$(stat -c '%u:%g' .)
 chown -R "$owner" build/ dist/
 """
-    if libc == "glibc":
-        script = f"apt-get update;apt-get install -y patchelf;{script}"
-
-    else:
-        script = f"apk add --no-cache patchelf binutils gcc musl-dev libffi-dev zstd-libs make;{script}"
-
     print(f"Building executables for {arch} ({libc}) with Python {python}...")
     if arch != uname().machine:
         _ = subprocess.run(
