@@ -6,3 +6,4 @@ build/
 .emake/
 wheelhouse/
 nuitka-crash-report.xml
+.*_cache/
