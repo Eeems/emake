@@ -16,6 +16,7 @@ def check_docker() -> bool:
             check=False,
         )
         return result.returncode == 0
+
     except FileNotFoundError:
         return False
 
