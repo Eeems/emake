@@ -16,7 +16,7 @@ RUN <<EOT
     musl-dev \
     openssl-dev \
     patchelf \
-    pkgconfig
+    pkgconfig \
     python3-dev \
     zstd-libs
   python -m pip install \
