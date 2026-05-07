@@ -125,7 +125,7 @@ def cmd_test(args: argparse.Namespace, _parser: argparse.ArgumentParser) -> int:
         test_manylinux_wheel(
             arch=args.arch,  # pyright: ignore[reportAny]
             libc=args.libc,  # pyright: ignore[reportAny]
-            python=args.python,  # pyright: ignore[reportAny]
+            python=args.python or config.minimum_python_version,  # pyright: ignore[reportAny]
             setup=args.setup,  # pyright: ignore[reportAny]
         )
         return 0
