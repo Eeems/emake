@@ -17,6 +17,7 @@ def build_executable(
     libc: str,
     python: str,
     setup: str | None,
+    teardown: str | None,
     no_compress: bool,
     lto: bool,
 ) -> None:
@@ -24,11 +25,12 @@ def build_executable(
         print("Error: Docker is not available", file=sys.stderr)
         sys.exit(1)
 
+    exename = f"{package}-{arch}-{get_python_interpreter(python)}-{libc}"
     flags: list[str] = [
         "--python-flag=-m",
         "--mode=onefile",
         "--output-dir=build/",
-        f"--output-filename=../dist/{package}-{arch}-{get_python_interpreter(python)}-{libc}",
+        f"--output-filename=../dist/{exename}",
         f"--include-package-data={package}",
     ]
     if lto:
@@ -51,7 +53,13 @@ python -m pip install \
 NUITKA_RESOURCE_MODE=code mold -run python -m nuitka {" ".join(flags)} {package}
 owner=$(stat -c '%u:%g' .)
 chown -R "$owner" build/ dist/
+# Workaround https://github.com/rust-lang/rust/issues/55120
+if [[ "$(patchelf --print-needed "dist/{exename}")" == *"libgcc_s.so.1"* ]]; then
+  patchelf --remove-needed libgcc_s.so.1 "dist/{exename}"
+fi
+{teardown or ""}
 """
+
     print(f"Building executables for {arch} ({libc}) with Python {python}...")
     if arch != uname().machine:
         _ = subprocess.run(
