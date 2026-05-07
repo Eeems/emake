@@ -152,8 +152,14 @@ def get_platform(arch: str) -> str:
         case "i686":
             return "linux/386"
 
+        case "x86_64":
+            return "linux/amd64"
+
         case "armv7l":
             return "linux/arm/v7"
+
+        case "aarch64":
+            return "linux/arm64"
 
         case _:
             return f"linux/{arch}"
@@ -178,6 +184,13 @@ def test_manylinux_wheel(arch: str, libc: str, python: str, setup: str | None) -
     else:
         raise FileNotFoundError(f"Error: No wheel found for architecture {arch}")
 
+    if arch == "riscv64" and python == "3.11" and libc == "glibc":
+        print(
+            "WARNING: python image does not support cp311-manylinux_2_39_riscv64, exiting without error",
+            file=sys.stderr,
+        )
+        return
+
     script = f"""
 cd /src
 {setup or ""}
@@ -194,14 +207,6 @@ cd /tmp/test;
 cp -r /src/tests .
 python -m pytest -vv tests
 """
-
-    if arch == "riscv64" and python == "3.11" and libc == "glibc":
-        print(
-            "WARNING: python image does not support cp311-manylinux_2_39_riscv64, exiting without error",
-            file=sys.stderr,
-        )
-        return
-
     if arch != uname().machine:
         _ = subprocess.run(
             [
