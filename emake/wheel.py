@@ -1,7 +1,6 @@
 """Docker-based manylinux wheel building for emake."""
 
 import os
-import shlex
 import subprocess
 import sys
 from glob import iglob

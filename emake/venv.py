@@ -17,9 +17,14 @@ class VirtualEnvironment:
             path: Path to virtual environment. Defaults to .venv in cwd.
         """
         self.path: str = os.path.realpath(os.path.abspath(path))
-        self.activate: str = os.path.join(self.path, "bin", "activate")
-        self.python: str = os.path.join(self.path, "bin", "python")
-        self.pip: str = os.path.join(self.path, "bin", "pip")
+        binpath = (
+            os.path.join(self.path, "Scripts")
+            if os.name == "nt"
+            else os.path.join(self.path, "bin")
+        )
+        self.activate: str = os.path.join(binpath, "activate")
+        self.python: str = os.path.join(binpath, "python")
+        self.pip: str = os.path.join(binpath, "pip")
         self.ensure()
         self.ensure_pip()
 
