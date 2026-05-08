@@ -38,7 +38,7 @@ jobs:
         run: emake lint
 
   test:
-    name: Test with python ${{{{ matrix.python }}}}
+    name: Test
     runs-on: ubuntu-latest
     strategy:
       matrix:
