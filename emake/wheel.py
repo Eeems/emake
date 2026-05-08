@@ -213,9 +213,11 @@ pip install \
 git config --global user.email 'root@localhost'
 git config --global user.name "Test Runner"
 git config --global init.defaultBranch trunk
-mkdir -p /tmp/test
-cd /tmp/test;
-cp -r /src/tests .
+if [ -d /src/tests ];then
+  mkdir -p /tmp/test
+  cd /tmp/test
+  cp -r /src/tests .
+fi
 {test_cmd}
 {teardown or ""}
 """
