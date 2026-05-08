@@ -17,6 +17,7 @@ jobs:
     name: Lint codebase
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
         python: &python-versions
           - "3.11"

@@ -178,6 +178,7 @@ def test_manylinux_wheel(
     python: str,
     setup: str | None,
     teardown: str | None,
+    test: list[str] | None,
 ) -> None:
     """Test a built manylinux wheel"""
     if not check_docker():
@@ -200,6 +201,7 @@ def test_manylinux_wheel(
         )
         return
 
+    test_cmd = "python -m pytest -vv tests" if test is None else "\n".join(test)
     script = f"""
 cd /src
 {setup or ""}
@@ -214,7 +216,7 @@ git config --global init.defaultBranch trunk
 mkdir -p /tmp/test
 cd /tmp/test;
 cp -r /src/tests .
-python -m pytest -vv tests
+{test_cmd}
 {teardown or ""}
 """
     if arch != uname().machine:
