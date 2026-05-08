@@ -17,6 +17,7 @@ class VirtualEnvironment:
             path: Path to virtual environment. Defaults to .venv in cwd.
         """
         self.path: str = os.path.realpath(os.path.abspath(path))
+        self.activate: str = os.path.join(self.path, "bin", "activate")
         self.python: str = os.path.join(self.path, "bin", "python")
         self.pip: str = os.path.join(self.path, "bin", "pip")
         self.ensure()
@@ -27,6 +28,7 @@ class VirtualEnvironment:
         """Check if virtual environment exists."""
         return (
             os.path.exists(self.path)
+            and os.path.exists(self.activate)
             and os.path.exists(self.python)
             and os.path.exists(self.pip)
         )

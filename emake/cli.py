@@ -2,6 +2,7 @@
 
 import argparse
 import os
+import subprocess
 import sys
 from importlib import resources
 
@@ -121,19 +122,28 @@ def cmd_test(args: argparse.Namespace, _parser: argparse.ArgumentParser) -> int:
         print("Error: Project name missing", file=sys.stderr)
         return 1
 
+    test = config.emake.get("test", None)
     if args.wheel:  # pyright: ignore[reportAny]
         test_manylinux_wheel(
             arch=args.arch,  # pyright: ignore[reportAny]
             libc=args.libc,  # pyright: ignore[reportAny]
             python=args.python or config.minimum_python_version,  # pyright: ignore[reportAny]
             setup=args.setup,  # pyright: ignore[reportAny]
-            teardown=args.teardown, # pyright: ignore[reportAny]
+            teardown=args.teardown,  # pyright: ignore[reportAny]
+            test=test,
         )
         return 0
 
     venv = get_venv()
     venv.ensure_test_tools()
-    return venv.run("-um", "pytest", "-vv", "tests").returncode
+    if test is None:
+        return venv.run("-um", "pytest", "-vv", "tests").returncode
+
+    test_cmd = "\n".join(test)
+    return subprocess.run(
+        ["bash", "-ec", f"source {venv.activate}\n{test_cmd}"],
+        check=False,
+    ).returncode
 
 
 def cmd_build(args: argparse.Namespace, _parser: argparse.ArgumentParser) -> int:
@@ -155,7 +165,7 @@ def cmd_build(args: argparse.Namespace, _parser: argparse.ArgumentParser) -> int
             libc=args.libc,  # pyright: ignore[reportAny]
             python=args.python or config.minimum_python_version,  # pyright: ignore[reportAny]
             setup=args.setup,  # pyright: ignore[reportAny]
-            teardown=args.teardown, # pyright: ignore[reportAny]
+            teardown=args.teardown,  # pyright: ignore[reportAny]
         )
 
     if args.native_wheel:  # pyright: ignore[reportAny]
@@ -165,7 +175,7 @@ def cmd_build(args: argparse.Namespace, _parser: argparse.ArgumentParser) -> int
             libc=args.libc,  # pyright: ignore[reportAny]
             python=args.python or config.minimum_python_version,  # pyright: ignore[reportAny]
             setup=args.setup,  # pyright: ignore[reportAny]
-            teardown=args.teardown, # pyright: ignore[reportAny]
+            teardown=args.teardown,  # pyright: ignore[reportAny]
         )
 
     if args.executable:  # pyright: ignore[reportAny]
@@ -175,7 +185,7 @@ def cmd_build(args: argparse.Namespace, _parser: argparse.ArgumentParser) -> int
             libc=args.libc,  # pyright: ignore[reportAny]
             python=args.python or config.minimum_python_version,  # pyright: ignore[reportAny]
             setup=args.setup,  # pyright: ignore[reportAny]
-            teardown=args.teardown, # pyright: ignore[reportAny]
+            teardown=args.teardown,  # pyright: ignore[reportAny]
             no_compress=args.no_compress,  # pyright: ignore[reportAny]
             lto=not args.no_lto,  # pyright: ignore[reportAny]
         )

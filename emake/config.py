@@ -432,7 +432,7 @@ def diff(workflow: bool, colour: bool) -> int:
             if project.extras is None or "test" not in project.extras:
                 error("'test' optional dependency group is missing.")
 
-            elif requirements_not_satisfied_by(
+            elif not project.emake.get("test", None) and requirements_not_satisfied_by(
                 ["pytest"], project.extras["test"], project.requires_python
             ):
                 error("pytest is not installed in the 'test' extras group.")
