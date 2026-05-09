@@ -152,7 +152,9 @@ class VirtualEnvironment:
         )
         _ = self._spinner(
             "Upgrading pip",
-            self.pip,
+            self.python,
+            "-um",
+            "pip",
             "install",
             "--upgrade",
             "pip",
