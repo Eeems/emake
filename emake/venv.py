@@ -24,7 +24,6 @@ class VirtualEnvironment:
         )
         self.activate: str = os.path.join(binpath, "activate")
         self.python: str = os.path.join(binpath, "python")
-        self.pip: str = os.path.join(binpath, "pip")
         self.ensure()
         self.ensure_pip()
 
@@ -35,7 +34,6 @@ class VirtualEnvironment:
             os.path.exists(self.path)
             and os.path.exists(self.activate)
             and os.path.exists(self.python)
-            and os.path.exists(self.pip)
         )
 
     def _chronic(
@@ -165,7 +163,9 @@ class VirtualEnvironment:
         """Ensure build and wheel are installed in the venv."""
         _ = self._spinner(
             "Installing build tools",
-            self.pip,
+            self.python,
+            "-um",
+            "pip",
             "install",
             "build",
             "wheel",
@@ -176,7 +176,9 @@ class VirtualEnvironment:
         """Ensure pytest is installed in the venv."""
         _ = self._spinner(
             "Installing test tools",
-            self.pip,
+            self.python,
+            "-um",
+            "pip",
             "install",
             "-e",
             ".[test]",
@@ -187,7 +189,9 @@ class VirtualEnvironment:
         """Ensure linting tools are installed in the venv."""
         _ = self._spinner(
             "Installing lint tools",
-            self.pip,
+            self.python,
+            "-um",
+            "pip",
             "install",
             "ruff",
             "vulture",
@@ -206,7 +210,9 @@ class VirtualEnvironment:
         """
         _ = self._spinner(
             "Installing requirements",
-            self.pip,
+            self.python,
+            "-um",
+            "pip",
             "install",
             "--quiet",
             "--editable",
