@@ -146,7 +146,7 @@ def cmd_test(args: argparse.Namespace, _parser: argparse.ArgumentParser) -> int:
             "bash",
             *([] if "RUNNER_DEBUG" not in os.environ else ["-x"]),
             "-ec",
-            f"source {activate}\n{test_cmd}",
+            f'source "{activate}"\n{test_cmd}',
         ],
         check=False,
     ).returncode
