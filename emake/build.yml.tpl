@@ -39,10 +39,14 @@ jobs:
 
   test:
     name: Test
-    runs-on: ubuntu-latest
+    runs-on: ${{{{ matrix.os }}}}
     strategy:
       matrix:
         python: *python-versions
+        os:
+          - ubuntu-latest
+          - windows-latest
+          - macos-latest
     steps:
       - name: Checkout the Git repository
         uses: actions/checkout@v6
