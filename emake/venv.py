@@ -23,7 +23,9 @@ class VirtualEnvironment:
             else os.path.join(self.path, "bin")
         )
         self.activate: str = os.path.join(binpath, "activate")
-        self.python: str = os.path.join(binpath, "python")
+        self.python: str = os.path.join(
+            binpath, "python.exe" if os.name == "nt" else "python"
+        )
         self.ensure()
         self.ensure_pip()
 
