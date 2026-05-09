@@ -140,8 +140,14 @@ def cmd_test(args: argparse.Namespace, _parser: argparse.ArgumentParser) -> int:
         return venv.run("-um", "pytest", "-vv", "tests").returncode
 
     test_cmd = "\n".join(test)
+    activate = os.path.relpath(venv.activate).replace("\\", "/")
     return subprocess.run(
-        ["bash", "-ec", f"source {venv.activate}\n{test_cmd}"],
+        [
+            "bash",
+            *([] if "RUNNER_DEBUG" not in os.environ else ["-x"]),
+            "-ec",
+            f'source "{activate}"\n{test_cmd}',
+        ],
         check=False,
     ).returncode
 
