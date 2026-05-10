@@ -149,6 +149,7 @@ def cmd_test(args: argparse.Namespace, _parser: argparse.ArgumentParser) -> int:
             f'source "{activate}"\n{test_cmd}',
         ],
         check=False,
+        env={**os.environ, "EMAKE": "1"},
     ).returncode
 
 

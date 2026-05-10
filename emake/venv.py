@@ -49,7 +49,7 @@ class VirtualEnvironment:
             check=False,
             capture_output=True,
             text=True,
-            env=env,
+            env={**(env or os.environ), "EMAKE": "1"},
         )
         if proc.returncode != 0:
             if proc.stdout:
@@ -79,7 +79,13 @@ class VirtualEnvironment:
             if chronic:
                 return self._chronic(*args)
 
-            return subprocess.run(args, text=True, capture_output=True, check=False)
+            return subprocess.run(
+                args,
+                text=True,
+                capture_output=True,
+                check=False,
+                env={**os.environ, "EMAKE": "1"},
+            )
 
         print(f"{action}: [{SPINNER_FRAMES[0]}]", end="", flush=True)
         proc = subprocess.Popen(
@@ -87,6 +93,7 @@ class VirtualEnvironment:
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
             text=True,
+            env={**os.environ, "EMAKE": "1"},
         )
         spinner_idx = 0
         while True:
@@ -233,26 +240,22 @@ class VirtualEnvironment:
 
         Args:
             *args: Command and arguments to run.
-            env: Additional environment variables.
+            env: Environment variables.
 
         Returns:
             CompletedProcess instance.
         """
-        run_env: dict[str, str] = os.environ.copy()
-        if env:
-            run_env.update(env)
-
         if chronic:
             return self._chronic(
                 self.python,
                 *args,
-                env=run_env,
+                env=env,
             )
 
         return subprocess.run(
             [self.python, *args],
             check=False,
-            env=env,
+            env={**(env or os.environ), "EMAKE": "1"},
             text=True,
             capture_output=capture_output,
         )
