@@ -1,6 +1,7 @@
 """Docker-based manylinux wheel building for emake."""
 
 import os
+import shutil
 import subprocess
 import sys
 from glob import iglob
@@ -11,7 +12,7 @@ def check_docker() -> bool:
     """Check if Docker is available."""
     try:
         result = subprocess.run(
-            ["docker", "--version"],
+            [shutil.which("docker") or "docker", "--version"],
             capture_output=True,
             check=False,
         )
@@ -105,10 +106,11 @@ rm -rf wheelhouse/
 """
 
     print(f"Building manylinux wheel for {arch} ({libc}) with Python {python}...")
+    docker = shutil.which("docker") or "docker"
     if arch != uname().machine:
         _ = subprocess.run(
             [
-                "docker",
+                docker,
                 "run",
                 "--privileged",
                 "--rm",
@@ -121,7 +123,7 @@ rm -rf wheelhouse/
 
     _ = subprocess.run(
         [
-            "docker",
+            docker,
             "run",
             "--rm",
             "-v",

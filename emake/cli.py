@@ -2,6 +2,7 @@
 
 import argparse
 import os
+import shutil
 import subprocess
 import sys
 from importlib import resources
@@ -143,7 +144,7 @@ def cmd_test(args: argparse.Namespace, _parser: argparse.ArgumentParser) -> int:
     activate = os.path.relpath(venv.activate).replace("\\", "/")
     return subprocess.run(
         [
-            "bash",
+            shutil.which("bash") or "bash",
             *([] if "RUNNER_DEBUG" not in os.environ else ["-x"]),
             "-ec",
             f'source "{activate}"\n{test_cmd}',

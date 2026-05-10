@@ -1,4 +1,5 @@
 import os
+import shutil
 import subprocess
 import sys
 from platform import uname
@@ -61,10 +62,11 @@ fi
 """
 
     print(f"Building executables for {arch} ({libc}) with Python {python}...")
+    docker = shutil.which("docker") or "docker"
     if arch != uname().machine:
         _ = subprocess.run(
             [
-                "docker",
+                docker,
                 "run",
                 "--privileged",
                 "--rm",
@@ -77,7 +79,7 @@ fi
 
     _ = subprocess.run(
         [
-            "docker",
+            docker,
             "run",
             "--rm",
             f"--volume={os.getcwd()}:/src",
