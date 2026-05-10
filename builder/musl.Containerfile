@@ -5,6 +5,7 @@ FROM python:${PYTHON_VERSION}-alpine
 RUN <<EOT
   set -e
   apk add --no-cache \
+    bash \
     binutils \
     cargo \
     ccache \
