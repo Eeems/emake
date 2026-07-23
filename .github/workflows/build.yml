@@ -115,9 +115,6 @@ jobs:
           - glibc
           - musl
         exclude:
-          - arch: i686 # segfaults currently
-            python: 3.14
-            libc: glibc
           - arch: armv7l # segfaults currently
             python: 3.14
     steps:
