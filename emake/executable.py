@@ -55,9 +55,11 @@ NUITKA_RESOURCE_MODE=code mold -run python -m nuitka {" ".join(flags)} {package}
 owner=$(stat -c '%u:%g' .)
 chown -R "$owner" build/ dist/
 # Workaround https://github.com/rust-lang/rust/issues/55120
-if [[ "$(patchelf --print-needed "dist/{exename}")" == *"libgcc_s.so.1"* ]]; then
-  patchelf --remove-needed libgcc_s.so.1 "dist/{exename}"
-fi
+case "$(patchelf --print-needed "dist/{exename}")" in
+  *"libgcc_s.so.1"* )
+    patchelf --remove-needed libgcc_s.so.1 "dist/{exename}"
+    ;;
+esac
 {teardown or ""}
 """
 
