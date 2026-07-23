@@ -118,11 +118,11 @@ class VirtualEnvironment:
 
         stdout = None
         if proc.stdout is not None:
-            stdout = proc.stdout.read()
+            stdout = proc.stdout.read()  # pyright: ignore[reportAny]
 
         stderr = None
         if proc.stderr is not None:
-            stderr = proc.stderr.read()
+            stderr = proc.stderr.read()  # pyright: ignore[reportAny]
 
         if chronic and proc.returncode:
             if proc.stdout:

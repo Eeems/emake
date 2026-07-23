@@ -116,7 +116,7 @@ def run_lint(
 
                 print(f"{tool}: [{SPINNER_FRAMES[spinner_idx]}]")
 
-            print("", end="", flush=True)
+            print(end="", flush=True)
             time.sleep(0.1)
             print("\x1b[2K\x1b[1A" * len(tools), end="")
 

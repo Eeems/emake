@@ -56,7 +56,7 @@ def get_manylinux_image(arch: str, libc: str) -> str:
     return f"manylinux_2_34_{arch}"
 
 
-def build_manylinux_wheel(
+def build_manylinux_wheel(  # noqa: PLR0917
     native: bool,
     arch: str,
     libc: str,
@@ -174,7 +174,7 @@ def get_python_image(python: str, libc: str) -> str:
     return f"ghcr.io/eeems/emake-builder:{python}-{libc}"
 
 
-def test_manylinux_wheel(
+def test_manylinux_wheel(  # noqa: PLR0917
     arch: str,
     libc: str,
     python: str,

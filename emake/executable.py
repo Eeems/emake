@@ -12,7 +12,7 @@ from .wheel import (
 )
 
 
-def build_executable(
+def build_executable(  # noqa: PLR0917
     package: str,
     arch: str,
     libc: str,

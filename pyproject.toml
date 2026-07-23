@@ -71,6 +71,7 @@ ignore = [
     "ANN401",
     "ANN001",
     "ANN003",
+    "BLE001"
 ]
 
 [tool.pyright]
